@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel - อนุมัติการชำระเงิน</title>
+  <title>Admin Dashboard - ระบบผู้ดูแล</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -13,6 +13,8 @@
       --accent-cyan: #38bdf8;
       --accent-green: #22c55e;
       --accent-red: #f43f5e;
+      --accent-purple: #a855f7;
+      --accent-orange: #f97316;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -34,16 +36,31 @@
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .top-bar h1 { font-size: 22px; margin: 0; background: linear-gradient(to right, #22c55e, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
+    .form-group { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
+    input, select {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+
     .btn {
-      padding: 8px 14px;
+      padding: 10px 16px;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       font-weight: 500;
-      font-size: 13px;
+      font-size: 14px;
       cursor: pointer;
     }
-    .btn-approve { background: var(--accent-green); color: #0f172a; font-weight: 600; }
-    .btn-approve:hover { background: #16a34a; color: white; }
+    .btn-submit { width: 100%; background: linear-gradient(135deg, #0284c7, #2563eb); color: white; margin-top: 10px; }
+    .btn-approve { background: var(--accent-green); color: #0f172a; font-weight: 600; padding: 6px 12px; font-size: 12px; }
+    .btn-bulk { width: 100%; background: linear-gradient(135deg, #f97316, #ea580c); color: white; margin-bottom: 20px; }
+    .btn-logout { background: rgba(244, 63, 94, 0.2); color: var(--accent-red); border: 1px solid rgba(244, 63, 94, 0.4); padding: 6px 12px; font-size: 12px; }
     .btn-nav { background: rgba(255, 255, 255, 0.1); color: var(--text-main); text-decoration: none; padding: 8px 16px; border-radius: 10px; font-size: 14px; border: 1px solid var(--glass-border); }
 
     table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
@@ -51,48 +68,137 @@
     td { padding: 12px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
 
     .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-    .toast { min-width: 250px; padding: 14px 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--glass-border); color: white; font-size: 14px; border-left: 4px solid var(--accent-green); }
+    .toast { min-width: 250px; padding: 14px 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--glass-border); color: white; font-size: 14px; }
   </style>
 </head>
-<body onload="loadPendingPayments()">
+<body>
 
   <div class="toast-container" id="toastContainer"></div>
 
   <div class="container">
-    <div class="top-bar">
-      <h1>🛡️ ระบบจัดการและอนุมัติยอด (Admin)</h1>
-      <a href="index.html" class="btn-nav">🙋‍♂️ ไปหน้าลูกค้า</a>
+    
+    <!-- 🔒 1. หน้า Login เข้าสู่ระบบ -->
+    <div class="card" id="loginCard" style="max-width: 400px; margin: 50px auto;">
+      <h2 style="margin-top:0; font-size: 20px; text-align: center; color: var(--accent-cyan);">🔒 เข้าสู่ระบบ Admin</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label>รหัสผ่านผู้ดูแลระบบ:</label>
+          <input type="password" id="adminPassword" placeholder="กรอกรหัสผ่าน..." required>
+        </div>
+        <button type="submit" class="btn btn-submit">เข้าสู่ระบบ</button>
+      </form>
     </div>
 
-    <!-- ส่วนที่แสดงรายการที่ลูกเจ้ารออนุมัติ -->
-    <div class="card">
-      <h2 style="margin-top:0; font-size: 18px; color: var(--accent-cyan);">⏳ รายการแจ้งชำระเงินที่รอยืนยัน</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>ชื่อลูกค้า</th>
-            <th>จำนวนเงิน</th>
-            <th>สถานะ</th>
-            <th>จัดการ</th>
-          </tr>
-        </thead>
-        <tbody id="pendingTableBody">
-          <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">กำลังโหลดข้อมูล...</td></tr>
-        </tbody>
-      </table>
+    <!-- 🛡️ 2. ส่วนควบคุมหลัก Admin (แสดงเมื่อ Login ผ่าน) -->
+    <div id="adminPanel" style="display: none;">
+      <div class="top-bar">
+        <h1>🛡️ ระบบจัดการและอนุมัติ (Admin)</h1>
+        <div>
+          <a href="index.html" class="btn-nav">🙋‍♂️ ไปหน้าลูกค้า</a>
+          <button class="btn btn-logout" onclick="logout()">ออกจากระบบ</button>
+        </div>
+      </div>
+
+      <!-- ส่วนที่ 1: รายการแจ้งชำระรอยืนยัน -->
+      <div class="card">
+        <h2 style="margin-top:0; font-size: 18px; color: var(--accent-cyan);">⏳ รายการแจ้งชำระเงินที่รอยืนยัน</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ชื่อลูกค้า</th>
+              <th>จำนวนเงิน</th>
+              <th>สถานะ</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="pendingTableBody">
+            <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">กำลังโหลดข้อมูล...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ส่วนที่ 2: ฟอร์มจัดการตั้งหนี้/เพิ่มยอด/ลดยอด -->
+      <div class="card">
+        <h2 style="margin-top:0; font-size: 18px; color: var(--accent-purple);">✏️ จัดการยอดลูกค้า (เพิ่ม/ลด/ตั้งหนี้)</h2>
+        
+        <button class="btn btn-bulk" id="bulkBtn" onclick="bulkAdd10()">⚡ ➕ เพิ่มตั้งหนี้ +10 บาทให้ทุกคน</button>
+
+        <form id="adminActionForm">
+          <div class="form-group">
+            <label style="color: var(--accent-cyan);">เลือกการทำรายการ:</label>
+            <select id="actionType" onchange="handleActionChange()">
+              <option value="deduct">🔴 เพิ่มยอดตั้งหนี้เฉพาะราย (เพิ่มหนี้ +)</option>
+              <option value="update">🟢 บันทึกรับชำระเงินโดยตรง (ลดยอดหนี้ -)</option>
+              <option value="add">🔵 เพิ่มลูกค้ารายใหม่พร้อมยอดตั้งต้น</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>ชื่อลูกค้า:</label>
+            <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า" required>
+          </div>
+
+          <div class="form-group">
+            <label id="amountLabel">จำนวนเงิน (บาท):</label>
+            <input type="number" id="amount" placeholder="0.00" step="0.01" required>
+          </div>
+
+          <button type="submit" class="btn btn-submit" id="saveBtn">บันทึกรายการ</button>
+        </form>
+      </div>
+
     </div>
+
   </div>
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
+    const ADMIN_PASS = "admin1234"; // 🔑 ตั้งรหัสผ่าน Admin ตรงนี้
 
-    function notify(message) {
+    function notify(message, isSuccess = true) {
       const container = document.getElementById("toastContainer");
       const toast = document.createElement("div");
       toast.className = "toast";
-      toast.innerHTML = `<span>✅</span> <span>${message}</span>`;
+      toast.style.borderLeft = isSuccess ? "4px solid #22c55e" : "4px solid #f43f5e";
+      toast.innerHTML = `<span>${isSuccess ? '✅' : '⚠️'}</span> <span>${message}</span>`;
       container.appendChild(toast);
       setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3500);
+    }
+
+    // ตรวจสอบสถานะ Login
+    if (sessionStorage.getItem("adminLoggedIn") === "true") {
+      showAdminPanel();
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const pass = document.getElementById("adminPassword").value;
+      if (pass === ADMIN_PASS) {
+        sessionStorage.setItem("adminLoggedIn", "true");
+        showAdminPanel();
+        notify("เข้าสู่ระบบสำเร็จ!");
+      } else {
+        notify("รหัสผ่านไม่ถูกต้อง!", false);
+      }
+    });
+
+    function showAdminPanel() {
+      document.getElementById("loginCard").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+      loadPendingPayments();
+    }
+
+    function logout() {
+      sessionStorage.removeItem("adminLoggedIn");
+      location.reload();
+    }
+
+    function handleActionChange() {
+      const type = document.getElementById("actionType").value;
+      const label = document.getElementById("amountLabel");
+      if (type === "deduct") label.innerText = "จำนวนเงินที่ต้องการตั้งหนี้เพิ่ม (บาท):";
+      if (type === "update") label.innerText = "จำนวนเงินที่รับชำระเข้ามา (ลดยอดหนี้):";
+      if (type === "add") label.innerText = "จำนวนยอดค้างตั้งต้น (บาท):";
     }
 
     function loadPendingPayments() {
@@ -113,36 +219,78 @@
                 <td style="font-weight:500;">${item.Customer_Name || '-'}</td>
                 <td style="color:var(--accent-green); font-weight:600;">-${amt} ฿</td>
                 <td><span style="color:#f59e0b; background:rgba(245, 158, 11, 0.15); padding:3px 8px; border-radius:6px; font-size:12px;">รอยืนยัน</span></td>
-                <td><button class="btn btn-approve" onclick="approvePayment(${item.rowIndex})">✅ อนุมัติว่าจ่ายแล้ว</button></td>
+                <td><button class="btn btn-approve" onclick="approvePayment(${item.rowIndex})">✅ อนุมัติ</button></td>
               `;
               tbody.appendChild(tr);
             }
           });
 
           if (count === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">ไม่มีรายการที่รอยืนยันในขณะนี้</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">ไม่มีรายการรอยืนยัน</td></tr>`;
           }
-        })
-        .catch(err => {
-          document.getElementById("pendingTableBody").innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--accent-red);">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>`;
         });
     }
 
     function approvePayment(rowIndex) {
-      if (!confirm("ยืนยันว่าลูกค้ารายนี้ชำระเงินเรียบร้อยแล้วใช่หรือไม่?")) return;
+      if (!confirm("ยืนยันว่าได้รับเงินเรียบร้อยแล้ว?")) return;
 
       fetch(WEB_APP_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ actionType: "approve", rowIndex: rowIndex })
       })
-      .then(res => res.json())
       .then(() => {
-        notify("อนุมัติยอดเงินเรียบร้อยแล้ว!");
-        loadPendingPayments(); // รีเฟรชตาราง
-      })
-      .catch(err => alert("เกิดข้อผิดพลาด: " + err));
+        notify("อนุมัติการชำระเงินสำเร็จ!");
+        loadPendingPayments();
+      });
     }
+
+    function bulkAdd10() {
+      if (!confirm("ยืนยันการตั้งหนี้ +10 บาทให้ทุกคน?")) return;
+      const btn = document.getElementById("bulkBtn");
+      btn.innerText = "กำลังดำเนินการ...";
+      btn.disabled = true;
+
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ actionType: "bulkAdd10" })
+      })
+      .then(() => {
+        notify("เพิ่มตั้งหนี้ +10 บาทให้ทุกคนสำเร็จ!");
+      })
+      .finally(() => {
+        btn.innerText = "⚡ ➕ เพิ่มตั้งหนี้ +10 บาทให้ทุกคน";
+        btn.disabled = false;
+      });
+    }
+
+    document.getElementById("adminActionForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const btn = document.getElementById("saveBtn");
+      btn.innerText = "กำลังบันทึก...";
+      btn.disabled = true;
+
+      const payload = {
+        actionType: document.getElementById("actionType").value,
+        customerName: document.getElementById("customerName").value.trim(),
+        amount: parseFloat(document.getElementById("amount").value) || 0
+      };
+
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        notify("บันทึกรายการสำเร็จ!");
+        document.getElementById("adminActionForm").reset();
+      })
+      .finally(() => {
+        btn.innerText = "บันทึกรายการ";
+        btn.disabled = false;
+      });
+    });
   </script>
 </body>
 </html>
