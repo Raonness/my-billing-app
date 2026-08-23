@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billing System - ค้นหายอดค้างชำระ</title>
+  <title>Customer Service - ตรวจสอบยอดและแจ้งชำระเงิน</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -21,21 +21,19 @@
     * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.25s ease; }
     body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; padding: 20px 10px; margin: 0; display: flex; flex-direction: column; align-items: center; }
 
-    .container { width: 100%; max-width: 700px; }
+    .container { width: 100%; max-width: 650px; }
     .card {
       background: var(--glass-bg);
       backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--glass-border);
       border-radius: 20px;
       padding: 25px;
       margin-bottom: 25px;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-      animation: fadeInUp 0.6s ease-out;
     }
 
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .top-bar h1 { font-size: 22px; margin: 0; background: linear-gradient(to right, #38bdf8, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .top-bar h1 { font-size: 22px; margin: 0; background: linear-gradient(to right, #38bdf8, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
     .form-group { margin-bottom: 18px; }
     label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
@@ -59,12 +57,13 @@
       font-size: 15px;
       cursor: pointer;
     }
-    .btn-primary { background: linear-gradient(135deg, #0284c7, #2563eb); color: white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); }
-    .btn-nav { background: rgba(255, 255, 255, 0.1); color: var(--text-main); text-decoration: none; padding: 8px 16px; border-radius: 10px; font-size: 14px; border: 1px solid var(--glass-border); }
+    .btn-primary { background: linear-gradient(135deg, #0284c7, #2563eb); color: white; }
+    .btn-success { background: linear-gradient(135deg, #16a34a, #059669); color: white; margin-top: 10px; }
+    .btn-admin-link { background: rgba(255, 255, 255, 0.08); color: var(--text-muted); text-decoration: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; border: 1px solid var(--glass-border); }
 
     table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-    th { text-align: left; padding: 12px 8px; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
-    td { padding: 12px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    th { text-align: left; padding: 10px 8px; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
+    td { padding: 10px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
 
     .summary-box {
       background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(168, 85, 247, 0.15));
@@ -79,9 +78,7 @@
     }
 
     .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-    .toast { min-width: 250px; padding: 14px 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--glass-border); color: white; font-size: 14px; backdrop-filter: blur(10px); }
-
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .toast { min-width: 250px; padding: 14px 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--glass-border); color: white; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -90,20 +87,21 @@
 
   <div class="container">
     <div class="top-bar">
-      <h1>⚡ Billing Dashboard</h1>
-      <a href="payment.html" class="btn-nav">💳 หน้าชำระเงิน (Admin)</a>
+      <h1>🙋‍♂️ ระบบบริการลูกค้า</h1>
+      <a href="payment.html" class="btn-admin-link">🔒 สำหรับผู้ดูแลระบบ</a>
     </div>
 
+    <!-- ส่วนที่ 1: ตรวจสอบยอดค้าง -->
     <div class="card">
-      <h2 style="margin-top:0; font-size: 18px; color: var(--accent-cyan);">🔍 ค้นหาประวัติและสรุปยอดค้างชำระ</h2>
+      <h2 style="margin-top:0; font-size: 18px; color: var(--accent-cyan);">🔍 1. ตรวจสอบยอดค้างชำระ</h2>
       <div class="form-group">
-        <label>กรอกชื่อลูกค้าเพื่อค้นหา:</label>
-        <input type="text" id="searchName" placeholder="เช่น นายสมชาย หรือ บริษัท ABC...">
+        <label>กรอกชื่อของคุณเพื่อค้นหา:</label>
+        <input type="text" id="searchName" placeholder="ระบุชื่อลูกค้าระบบ...">
       </div>
-      <button class="btn btn-primary" id="searchBtn" onclick="checkBalance()">ค้นหาข้อมูล</button>
+      <button class="btn btn-primary" id="searchBtn" onclick="checkBalance()">ค้นหายอดค้าง</button>
 
       <div id="resultArea" style="display:none;">
-        <h3 style="font-size: 15px; color: var(--accent-purple); margin-top: 20px;">ประวัติธุรกรรมทั้งหมด</h3>
+        <h3 style="font-size: 14px; color: var(--accent-purple); margin-top: 20px;">ประวัติรายการของคุณ</h3>
         <table>
           <thead>
             <tr>
@@ -114,19 +112,37 @@
           </thead>
           <tbody id="resultTableBody"></tbody>
         </table>
-        <div class="summary-box" id="totalPendingBox">สรุปยอดค้างชำระสุทธิ: 0.00 บาท</div>
+        <div class="summary-box" id="totalPendingBox">ยอดค้างชำระคงเหลือ: 0.00 บาท</div>
       </div>
     </div>
+
+    <!-- ส่วนที่ 2: ฟอร์มแจ้งชำระเงินสำหรับลูกค้า -->
+    <div class="card">
+      <h2 style="margin-top:0; font-size: 18px; color: var(--accent-green);">💳 2. แจ้งชำระเงิน (Submit Payment)</h2>
+      <form id="clientPaymentForm">
+        <div class="form-group">
+          <label>ชื่อลูกค้า (ให้ตรงกับระบบ):</label>
+          <input type="text" id="payCustomerName" placeholder="ระบุชื่อของคุณ" required>
+        </div>
+        <div class="form-group">
+          <label>จำนวนเงินที่โอนชำระ (บาท):</label>
+          <input type="number" id="payAmount" placeholder="0.00" step="0.01" required>
+        </div>
+        <button type="submit" class="btn btn-success" id="payBtn">ยืนยันการแจ้งชำระเงิน</button>
+      </form>
+    </div>
+
   </div>
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
 
-    function notify(message, type = 'info') {
+    function notify(message, isSuccess = true) {
       const container = document.getElementById("toastContainer");
       const toast = document.createElement("div");
-      toast.className = `toast ${type}`;
-      toast.innerHTML = `<span>ℹ️</span> <span>${message}</span>`;
+      toast.className = "toast";
+      toast.style.borderLeft = isSuccess ? "4px solid #22c55e" : "4px solid #f43f5e";
+      toast.innerHTML = `<span>${isSuccess ? '✅' : '⚠️'}</span> <span>${message}</span>`;
       container.appendChild(toast);
       setTimeout(() => {
         toast.style.opacity = '0';
@@ -134,16 +150,17 @@
       }, 3500);
     }
 
+    // ฟังก์ชันค้นหายอดค้างชำระ
     function checkBalance() {
       const searchName = document.getElementById("searchName").value.trim().toLowerCase();
       const btn = document.getElementById("searchBtn");
       
       if (!searchName) {
-        notify("กรุณากรอกชื่อลูกค้าเพื่อค้นหา");
+        notify("กรุณากรอกชื่อเพื่อค้นหา", false);
         return;
       }
 
-      btn.innerText = "กำลังคำนวณยอด...";
+      btn.innerText = "กำลังค้นหา...";
       btn.disabled = true;
 
       fetch(WEB_APP_URL)
@@ -162,15 +179,14 @@
 
               totalPendingSum += amt;
               const isPayment = amt < 0;
-              const displayAmt = Math.abs(amt).toLocaleString() + " ฿";
 
               row.innerHTML = `
                 <td style="font-size:12px; color:var(--accent-cyan);">${item.Invoice_ID || '-'}</td>
-                <td style="color:${isPayment ? 'var(--accent-green)' : 'var(--accent-orange)'}; font-weight:500;">
+                <td style="color:${isPayment ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:500;">
                   ${item.Status || (isPayment ? 'Payment' : 'Charge')}
                 </td>
                 <td style="color:${isPayment ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;">
-                  ${isPayment ? '-' : '+'}${displayAmt}
+                  ${isPayment ? '-' : '+'}${Math.abs(amt).toLocaleString()} ฿
                 </td>
               `;
               tableBody.appendChild(row);
@@ -178,11 +194,11 @@
           });
 
           if (matchCount === 0) {
-            notify("ไม่พบประวัติลูกค้ารายนี้ในระบบ");
+            notify("ไม่พบประวัติชื่อนี้ในระบบ", false);
             document.getElementById("resultArea").style.display = "none";
           } else {
             const finalBox = document.getElementById("totalPendingBox");
-            finalBox.innerText = "สรุปยอดค้างชำระสุทธิ: " + totalPendingSum.toLocaleString() + " บาท";
+            finalBox.innerText = "ยอดค้างชำระคงเหลือ: " + totalPendingSum.toLocaleString() + " บาท";
             
             if (totalPendingSum <= 0) {
               finalBox.style.color = "#86efac";
@@ -193,14 +209,48 @@
             }
 
             document.getElementById("resultArea").style.display = "block";
+            // นำชื่อไปใส่อัตโนมัติในช่องแจ้งชำระ
+            document.getElementById("payCustomerName").value = document.getElementById("searchName").value;
           }
         })
-        .catch(err => notify("เกิดข้อผิดพลาด: " + err))
+        .catch(err => notify("เกิดข้อผิดพลาด: " + err, false))
         .finally(() => {
-          btn.innerText = "ค้นหาข้อมูล";
+          btn.innerText = "ค้นหายอดค้าง";
           btn.disabled = false;
         });
     }
+
+    // ฟังก์ชันลูกค้าระบุชำระเงินเข้ามา
+    document.getElementById("clientPaymentForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const btn = document.getElementById("payBtn");
+      btn.innerText = "กำลังส่งข้อมูลการชำระเงิน...";
+      btn.disabled = true;
+
+      const payload = {
+        actionType: "update", // update หมายถึง ชำระเงิน (ลดยอดค้าง)
+        customerName: document.getElementById("payCustomerName").value.trim(),
+        amount: parseFloat(document.getElementById("payAmount").value) || 0
+      };
+
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        notify("แจ้งชำระเงินสำเร็จแล้ว!", true);
+        document.getElementById("clientPaymentForm").reset();
+        if (document.getElementById("searchName").value.trim()) {
+          checkBalance(); // อัปเดตตารางยอดคงเหลือทันที
+        }
+      })
+      .catch(err => notify("เกิดข้อผิดพลาด: " + err, false))
+      .finally(() => {
+        btn.innerText = "ยืนยันการแจ้งชำระเงิน";
+        btn.disabled = false;
+      });
+    });
   </script>
 </body>
 </html>
