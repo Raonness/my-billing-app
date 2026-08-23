@@ -3,82 +3,224 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบเรียกเก็บเงิน & ตรวจสอบยอด</title>
+  <title>Billing System - Pro Design</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; padding: 20px; max-width: 600px; margin: auto; }
-    .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    h2, h3 { margin-top: 0; color: #333; text-align: center; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-    input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-    button { padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
-    button:hover { background-color: #218838; }
-    button.search-btn { background-color: #007bff; }
-    button.search-btn:hover { background-color: #0056b3; }
-    button:disabled { background-color: #cccccc; cursor: not-allowed; }
-    
-    /* สไตล์ตารางแสดงผลยอดค้างชำระ */
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
-    th { background-color: #f2f2f2; }
-    .total-box { font-size: 18px; font-weight: bold; color: #d9534f; text-align: right; margin-top: 10px; }
-    .status-pending { color: #d9534f; font-weight: bold; }
-    .status-paid { color: #5cb85c; font-weight: bold; }
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --accent-cyan: #38bdf8;
+      --accent-green: #22c55e;
+      --accent-red: #f43f5e;
+      --accent-purple: #a855f7;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; padding: 20px 10px; margin: 0; display: flex; flex-direction: column; align-items: center; }
+
+    /* Container & Cards */
+    .container { width: 100%; max-width: 650px; }
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    /* Header Bar */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .top-bar h1 { font-size: 22px; margin: 0; background: linear-gradient(to right, #38bdf8, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* Form & Input Elements */
+    .form-group { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+    input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 12px rgba(56, 189, 248, 0.3); }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 15px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #0284c7, #2563eb); color: white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6); }
+    .btn-admin { background: rgba(255, 255, 255, 0.1); color: var(--accent-cyan); width: auto; padding: 8px 16px; border: 1px solid var(--glass-border); }
+    .btn-admin:hover { background: rgba(56, 189, 248, 0.2); }
+    .btn-status { padding: 4px 12px; font-size: 12px; border-radius: 20px; border: none; cursor: pointer; }
+    .btn-status.pending { background: rgba(244, 63, 94, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+    .btn-status.paid { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+
+    /* Table Design */
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+    th { text-align: left; padding: 12px 8px; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
+    td { padding: 12px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+
+    /* Dashboard Summary Box */
+    .summary-box {
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(168, 85, 247, 0.15));
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      padding: 15px;
+      border-radius: 14px;
+      text-align: right;
+      font-size: 18px;
+      font-weight: 600;
+      color: #fda4af;
+      margin-top: 15px;
+      animation: pulse 2s infinite alternate;
+    }
+
+    /* Modal Login */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: #1e293b; border: 1px solid var(--glass-border); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; animation: zoomIn 0.3s ease; }
+
+    /* Animations */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
   </style>
 </head>
 <body>
 
-  <!-- ส่วนที่ 1: บันทึกข้อมูล (โค้ดเดิมของคุณ) -->
-  <div class="card">
-    <h2>บันทึกรายการเรียกเก็บเงิน</h2>
-    <form id="billingForm">
+  <div class="container">
+    
+    <!-- Header & Admin Login Button -->
+    <div class="top-bar">
+      <h1>⚡ Billing Dashboard</h1>
+      <button class="btn btn-admin" id="loginToggleBtn" onclick="toggleLoginModal()">🔒 เข้าสู่ระบบ Admin</button>
+    </div>
+
+    <!-- ส่วนที่ 1: ตรวจสอบยอดค้างชำระ (สำหรับทุกคน) -->
+    <div class="card">
+      <h2 style="margin-top:0; font-size: 18px; color: var(--accent-cyan);">🔍 ตรวจสอบยอดค้างชำระ</h2>
       <div class="form-group">
-        <label>ชื่อลูกค้า:</label>
-        <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า" required>
+        <label>กรอกชื่อลูกค้าของคุณเพื่อค้นหา:</label>
+        <input type="text" id="searchName" placeholder="เช่น นายสมชาย หรือ บริษัท ABC...">
       </div>
-      <div class="form-group">
-        <label>จำนวนเงิน (บาท):</label>
-        <input type="number" id="amount" placeholder="0.00" step="0.01" required>
+      <button class="btn btn-primary" id="searchBtn" onclick="checkBalance()">ค้นหายอดค้างชำระ</button>
+
+      <div id="resultArea" style="display:none;">
+        <table>
+          <thead>
+            <tr>
+              <th>รายการ</th>
+              <th>ยอดสุทธิ</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+          <tbody id="resultTableBody"></tbody>
+        </table>
+        <!-- สรุปยอดค้างชำระอัตโนมัติ -->
+        <div class="summary-box" id="totalPendingBox">รวมยอดค้างชำระ: 0.00 บาท</div>
       </div>
-      <div class="form-group">
-        <label>ยอดรวมสุทธิ (Total Amount):</label>
-        <input type="number" id="totalAmount" placeholder="0.00" step="0.01" required>
+    </div>
+
+    <!-- ส่วนที่ 2: ฟอร์มบันทึกข้อมูล (เฉพาะ Admin เท่านั้น) -->
+    <div class="card" id="adminPanel" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 style="margin:0; font-size: 18px; color: var(--accent-purple);">📝 บันทึกการเรียกเก็บเงิน (Admin Mode)</h2>
+        <span style="font-size: 12px; color: var(--accent-green); background: rgba(34, 197, 94, 0.2); padding: 4px 8px; border-radius: 8px;">● Logged in</span>
       </div>
-      <button type="submit" id="submitBtn">บันทึกข้อมูล</button>
-    </form>
+      
+      <form id="billingForm">
+        <div class="form-group">
+          <label>ชื่อลูกค้า:</label>
+          <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า" required>
+        </div>
+        <div class="form-group">
+          <label>จำนวนเงิน (บาท):</label>
+          <input type="number" id="amount" placeholder="0.00" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>ยอดรวมสุทธิ (Total Amount):</label>
+          <input type="number" id="totalAmount" placeholder="0.00" step="0.01" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submitBtn" style="background: linear-gradient(135deg, #a855f7, #6366f1);">บันทึกรายการลง Sheet</button>
+      </form>
+    </div>
+
   </div>
 
-  <!-- ส่วนที่ 2: ตรวจสอบยอดค้างชำระสำหรับลูกค้า (เพิ่มใหม่) -->
-  <div class="card">
-    <h3>🔍 ตรวจสอบยอดค้างชำระ</h3>
-    <div class="form-group">
-      <label>พิมพ์ชื่อลูกค้า เพื่อค้นหา:</label>
-      <input type="text" id="searchName" placeholder="กรอกชื่อลูกค้า...">
-    </div>
-    <button type="button" class="search-btn" id="searchBtn" onclick="checkBalance()">ค้นหายอดค้างชำระ</button>
-
-    <div id="resultArea" style="display:none;">
-      <table>
-        <thead>
-          <tr>
-            <th>รหัสรายการ</th>
-            <th>ยอดรวมสุทธิ</th>
-            <th>สถานะ</th>
-          </tr>
-        </thead>
-        <tbody id="resultTableBody"></tbody>
-      </table>
-      <div class="total-box" id="totalPendingBox">รวมยอดค้างชำระทั้งหมด: 0.00 บาท</div>
+  <!-- Modal สำหรับ Log in Admin -->
+  <div class="modal" id="loginModal">
+    <div class="modal-content">
+      <h2 style="margin-top:0; text-align: center; color: var(--accent-cyan);">🔐 เข้าสู่ระบบ Admin</h2>
+      <div class="form-group">
+        <label>ชื่อผู้ใช้งาน (Username):</label>
+        <input type="text" id="adminUser" placeholder="Username">
+      </div>
+      <div class="form-group">
+        <label>รหัสผ่าน (Password):</label>
+        <input type="password" id="adminPass" placeholder="Password">
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-primary" onclick="handleLogin()">เข้าสู่ระบบ</button>
+        <button class="btn" style="background: transparent; color: var(--text-muted);" onclick="toggleLoginModal()">ยกเลิก</button>
+      </div>
     </div>
   </div>
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
+    let isAdminLoggedIn = false;
 
-    // ฟังก์ชันบันทึกข้อมูลเดิม
+    // ระบบ Log in Admin
+    function toggleLoginModal() {
+      if (isAdminLoggedIn) {
+        isAdminLoggedIn = false;
+        document.getElementById("adminPanel").style.display = "none";
+        document.getElementById("loginToggleBtn").innerText = "🔒 เข้าสู่ระบบ Admin";
+        alert("ออกจากระบบเรียบร้อยแล้ว");
+      } else {
+        const modal = document.getElementById("loginModal");
+        modal.style.display = modal.style.display === "flex" ? "none" : "flex";
+      }
+    }
+
+    function handleLogin() {
+      const u = document.getElementById("adminUser").value;
+      const p = document.getElementById("adminPass").value;
+
+      if (u === "Admin" && p === "Admin1123") {
+        isAdminLoggedIn = true;
+        document.getElementById("adminPanel").style.display = "block";
+        document.getElementById("loginToggleBtn").innerText = "🔓 ออกจากระบบ Admin";
+        toggleLoginModal();
+        document.getElementById("adminUser").value = "";
+        document.getElementById("adminPass").value = "";
+        alert("เข้าสู่ระบบ Admin สำเร็จ!");
+      } else {
+        alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!");
+      }
+    }
+
+    // ฟังก์ชันบันทึกข้อมูล ( Admin Only )
     document.getElementById("billingForm").addEventListener("submit", function(e) {
       e.preventDefault();
-      
       const btn = document.getElementById("submitBtn");
       btn.innerText = "กำลังบันทึกข้อมูล...";
       btn.disabled = true;
@@ -96,27 +238,27 @@
         body: JSON.stringify(payload)
       })
       .then(() => {
-        alert("บันทึกข้อมูลเข้า Google Sheets เรียบร้อยแล้ว!");
+        alert("บันทึกข้อมูลสำเร็จ!");
         document.getElementById("billingForm").reset();
       })
       .catch(err => alert("เกิดข้อผิดพลาด: " + err))
       .finally(() => {
-        btn.innerText = "บันทึกข้อมูล";
+        btn.innerText = "บันทึกรายการลง Sheet";
         btn.disabled = false;
       });
     });
 
-    // ฟังก์ชันสำหรับค้นหายอดค้างชำระ (เพิ่มใหม่)
+    // ค้นหา และ คำนวณสรุปยอดค้างชำระอัตโนมัติ
     function checkBalance() {
       const searchName = document.getElementById("searchName").value.trim().toLowerCase();
       const btn = document.getElementById("searchBtn");
       
       if (!searchName) {
-        alert("กรุณากรอกชื่อลูกค้าเพื่อทำการค้นหาครับ");
+        alert("กรุณากรอกชื่อลูกค้าเพื่อค้นหาครับ");
         return;
       }
 
-      btn.innerText = "กำลังค้นหา...";
+      btn.innerText = "กำลังค้นหาข้อมูล...";
       btn.disabled = true;
 
       fetch(WEB_APP_URL)
@@ -128,42 +270,62 @@
           let matchCount = 0;
 
           data.forEach(item => {
-            // ค้นหาแบบไม่สนตัวพิมพ์ใหญ่-เล็ก
             if (item.Customer_Name && item.Customer_Name.toString().toLowerCase().includes(searchName)) {
               matchCount++;
               const row = document.createElement("tr");
-              
-              // คำนวณยอดค้างรวม (เฉพาะรายการที่ Status ยังเป็น Pending)
               const amountVal = parseFloat(item.Total_Amount) || 0;
-              if (item.Status === "Pending") {
-                totalPending += amountVal;
-              }
+              const isPending = item.Status === "Pending";
 
-              const statusClass = item.Status === "Pending" ? "status-pending" : "status-paid";
-              const statusText = item.Status === "Pending" ? "ยังไม่ชำระ" : "ชำระแล้ว";
+              if (isPending) totalPending += amountVal;
+
+              // ปุ่มเปลี่ยนสถานะ (จะแสดงก็ต่อเมื่อ Admin Logged in เท่านั้น)
+              let statusBtnHTML = isPending 
+                ? `<button class="btn-status pending" ${isAdminLoggedIn ? `onclick="toggleStatus('${item.Invoice_ID}', 'Paid')"` : ''}>ยังไม่ชำระ</button>`
+                : `<button class="btn-status paid" ${isAdminLoggedIn ? `onclick="toggleStatus('${item.Invoice_ID}', 'Pending')"` : ''}>ชำระแล้ว</button>`;
 
               row.innerHTML = `
-                <td>${item.Invoice_ID || '-'}</td>
-                <td>${amountVal.toLocaleString()} บาท</td>
-                <td class="${statusClass}">${statusText}</td>
+                <td>${item.Customer_Name}</td>
+                <td>${amountVal.toLocaleString()} ฿</td>
+                <td>${statusBtnHTML}</td>
               `;
               tableBody.appendChild(row);
             }
           });
 
           if (matchCount === 0) {
-            alert("ไม่พบข้อมูลลูกค้าชื่อนี้ในระบบ");
+            alert("ไม่พบข้อมูลลูกค้ารายนี้");
             document.getElementById("resultArea").style.display = "none";
           } else {
-            document.getElementById("totalPendingBox").innerText = "รวมยอดค้างชำระทั้งหมด: " + totalPending.toLocaleString() + " บาท";
+            document.getElementById("totalPendingBox").innerText = "ยอดค้างชำระรวมอัตโนมัติ: " + totalPending.toLocaleString() + " บาท";
             document.getElementById("resultArea").style.display = "block";
           }
         })
-        .catch(err => alert("เกิดข้อผิดพลาดในการดึงข้อมูล: " + err))
+        .catch(err => alert("เกิดข้อผิดพลาด: " + err))
         .finally(() => {
           btn.innerText = "ค้นหายอดค้างชำระ";
           btn.disabled = false;
         });
+    }
+
+    // ฟังก์ชันปรับสถานะการชำระเงิน (คลิกเพื่อสลับ Pending <-> Paid)
+    function toggleStatus(invoiceId, newStatus) {
+      if (!isAdminLoggedIn) return;
+      if (!confirm("คุณต้องการเปลี่ยนสถานะรายการนี้ใช่หรือไม่?")) return;
+
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "updateStatus",
+          invoiceId: invoiceId,
+          newStatus: newStatus
+        })
+      })
+      .then(() => {
+        alert("อัปเดตสถานะเรียบร้อยแล้ว!");
+        checkBalance(); // โหลดข้อมูลใหม่
+      })
+      .catch(err => alert("อัปเดตไม่สำเร็จ: " + err));
     }
   </script>
 </body>
