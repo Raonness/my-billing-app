@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billing System - Transaction History Mode</title>
+  <title>Billing System - ค้นหายอดค้างชำระ</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -14,15 +14,14 @@
       --accent-green: #22c55e;
       --accent-red: #f43f5e;
       --accent-purple: #a855f7;
-      --accent-orange: #f97316;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
 
-    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.25s ease; }
     body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; padding: 20px 10px; margin: 0; display: flex; flex-direction: column; align-items: center; }
 
-    .container { width: 100%; max-width: 750px; }
+    .container { width: 100%; max-width: 700px; }
     .card {
       background: var(--glass-bg);
       backdrop-filter: blur(16px);
@@ -40,7 +39,7 @@
 
     .form-group { margin-bottom: 18px; }
     label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
-    input, select {
+    input {
       width: 100%;
       padding: 12px 16px;
       background: rgba(15, 23, 42, 0.8);
@@ -50,7 +49,6 @@
       font-size: 15px;
       outline: none;
     }
-    input:focus, select:focus { border-color: var(--accent-cyan); box-shadow: 0 0 12px rgba(56, 189, 248, 0.3); }
 
     .btn {
       width: 100%;
@@ -60,17 +58,10 @@
       font-weight: 500;
       font-size: 15px;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
     }
     .btn-primary { background: linear-gradient(135deg, #0284c7, #2563eb); color: white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6); }
-    .btn-admin { background: rgba(255, 255, 255, 0.1); color: var(--accent-cyan); width: auto; padding: 8px 16px; border: 1px solid var(--glass-border); }
-    .btn-bulk { background: linear-gradient(135deg, #f97316, #ea580c); color: white; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3); }
-    .btn-bulk:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5); }
-    
+    .btn-nav { background: rgba(255, 255, 255, 0.1); color: var(--text-main); text-decoration: none; padding: 8px 16px; border-radius: 10px; font-size: 14px; border: 1px solid var(--glass-border); }
+
     table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
     th { text-align: left; padding: 12px 8px; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
     td { padding: 12px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
@@ -87,18 +78,10 @@
       margin-top: 15px;
     }
 
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { background: #1e293b; border: 1px solid var(--glass-border); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; animation: zoomIn 0.3s ease; }
-
     .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-    .toast { min-width: 250px; padding: 14px 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--glass-border); color: white; font-size: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 10px; backdrop-filter: blur(10px); animation: slideInRight 0.4s ease-out; }
-    .toast.success { border-left: 4px solid var(--accent-green); }
-    .toast.info { border-left: 4px solid var(--accent-cyan); }
-    .toast.warning { border-left: 4px solid var(--accent-red); }
+    .toast { min-width: 250px; padding: 14px 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--glass-border); color: white; font-size: 14px; backdrop-filter: blur(10px); }
 
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-    @keyframes slideInRight { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
   </style>
 </head>
 <body>
@@ -108,10 +91,9 @@
   <div class="container">
     <div class="top-bar">
       <h1>⚡ Billing Dashboard</h1>
-      <button class="btn btn-admin" id="loginToggleBtn" onclick="toggleLoginModal()">🔒 เข้าสู่ระบบ Admin</button>
+      <a href="payment.html" class="btn-nav">💳 หน้าชำระเงิน (Admin)</a>
     </div>
 
-    <!-- ค้นหาข้อมูล -->
     <div class="card">
       <h2 style="margin-top:0; font-size: 18px; color: var(--accent-cyan);">🔍 ค้นหาประวัติและสรุปยอดค้างชำระ</h2>
       <div class="form-group">
@@ -135,195 +117,34 @@
         <div class="summary-box" id="totalPendingBox">สรุปยอดค้างชำระสุทธิ: 0.00 บาท</div>
       </div>
     </div>
-
-    <!-- Admin Panel -->
-    <div class="card" id="adminPanel" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h2 style="margin:0; font-size: 18px; color: var(--accent-purple);">📝 บันทึกธุรกรรม (Admin Mode)</h2>
-        <span style="font-size: 12px; color: var(--accent-green); background: rgba(34, 197, 94, 0.2); padding: 4px 8px; border-radius: 8px;">● Logged in</span>
-      </div>
-
-      <!-- ปุ่ม +10 ทุกคน -->
-      <button class="btn btn-bulk" id="bulkBtn" onclick="bulkAdd10()">⚡ ➕ เพิ่มรายการตั้งหนี้ +10 ให้ทุกคน</button>
-
-      <form id="billingForm">
-        <div class="form-group">
-          <label style="color: var(--accent-cyan); font-weight: 600;">ประเภทธุรกรรม:</label>
-          <select id="actionType" onchange="handleActionTypeChange()">
-            <option value="add">🟢 เพิ่มรายการตั้งหนี้ใหม่ (Initial / Charge)</option>
-            <option value="update">🔵 รับชำระเงิน (Payment - ลดยอดค้าง)</option>
-            <option value="deduct">🔴 บันทึกยอดค้างเพิ่มเฉพาะราย (Additional Charge)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>ชื่อลูกค้า:</label>
-          <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า" required>
-        </div>
-
-        <div class="form-group">
-          <label id="amountLabel">จำนวนเงิน (บาท):</label>
-          <input type="number" id="amount" placeholder="0.00" step="0.01" required>
-        </div>
-
-        <button type="submit" class="btn btn-primary" id="submitBtn" style="background: linear-gradient(135deg, #a855f7, #6366f1);">บันทึกรายการใหม่</button>
-      </form>
-    </div>
-
-  </div>
-
-  <!-- Modal Login -->
-  <div class="modal" id="loginModal">
-    <div class="modal-content">
-      <h2 style="margin-top:0; text-align: center; color: var(--accent-cyan);">🔐 เข้าสู่ระบบ Admin</h2>
-      <form onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label>Username:</label>
-          <input type="text" id="adminUser" placeholder="Username" required>
-        </div>
-        <div class="form-group">
-          <label>Password:</label>
-          <input type="password" id="adminPass" placeholder="Password" required>
-        </div>
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
-          <button type="button" class="btn" style="background: transparent; color: var(--text-muted);" onclick="toggleLoginModal()">ยกเลิก</button>
-        </div>
-      </form>
-    </div>
   </div>
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
-    let isAdminLoggedIn = false;
 
     function notify(message, type = 'info') {
       const container = document.getElementById("toastContainer");
       const toast = document.createElement("div");
       toast.className = `toast ${type}`;
-      let icon = type === 'success' ? '✅' : (type === 'warning' ? '⚠️' : 'ℹ️');
-      toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+      toast.innerHTML = `<span>ℹ️</span> <span>${message}</span>`;
       container.appendChild(toast);
       setTimeout(() => {
         toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100px)';
         setTimeout(() => toast.remove(), 300);
       }, 3500);
     }
-
-    function toggleLoginModal() {
-      if (isAdminLoggedIn) {
-        isAdminLoggedIn = false;
-        document.getElementById("adminPanel").style.display = "none";
-        document.getElementById("loginToggleBtn").innerText = "🔒 เข้าสู่ระบบ Admin";
-        notify("ออกจากระบบ Admin เรียบร้อยแล้ว", "warning");
-      } else {
-        const modal = document.getElementById("loginModal");
-        modal.style.display = modal.style.display === "flex" ? "none" : "flex";
-      }
-    }
-
-    function handleLogin(e) {
-      if (e) e.preventDefault();
-      const u = document.getElementById("adminUser").value.trim();
-      const p = document.getElementById("adminPass").value.trim();
-
-      if (u === "Admin" && p === "Admin1123") {
-        isAdminLoggedIn = true;
-        document.getElementById("adminPanel").style.display = "block";
-        document.getElementById("loginToggleBtn").innerText = "🔓 ออกจากระบบ Admin";
-        document.getElementById("loginModal").style.display = "none";
-        document.getElementById("adminUser").value = "";
-        document.getElementById("adminPass").value = "";
-        notify("เข้าสู่ระบบ Admin สำเร็จแล้ว!", "success");
-      } else {
-        notify("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!", "warning");
-      }
-    }
-
-    function bulkAdd10() {
-      if (!confirm("⚠️ ยืนยันการบันทึกรายการเพิ่มหนี้ +10 บาทให้กับลูกค้าทุกคนใช่หรือไม่?")) return;
-
-      const bulkBtn = document.getElementById("bulkBtn");
-      bulkBtn.innerText = "⏳ กำลังบันทึกรายการ +10 ให้ทุกคน...";
-      bulkBtn.disabled = true;
-      notify("กำลังส่งข้อมูล...", "info");
-
-      fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ actionType: "bulkAdd10" })
-      })
-      .then(res => res.json())
-      .then(() => {
-        notify("บันทึกรายการ +10 ให้ทุกคนเรียบร้อยแล้ว!", "success");
-        if (document.getElementById("searchName").value.trim()) {
-          checkBalance();
-        }
-      })
-      .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
-      .finally(() => {
-        bulkBtn.innerText = "⚡ ➕ เพิ่มรายการตั้งหนี้ +10 ให้ทุกคน";
-        bulkBtn.disabled = false;
-      });
-    }
-
-    function handleActionTypeChange() {
-      const type = document.getElementById("actionType").value;
-      const amountLabel = document.getElementById("amountLabel");
-
-      if (type === "add") {
-        amountLabel.innerText = "จำนวนเงินยอดค้างตั้งต้น (บาท):";
-      } else if (type === "update") {
-        amountLabel.innerText = "จำนวนเงินที่ชำระเข้ามา (ลดยอดค้าง):";
-      } else if (type === "deduct") {
-        amountLabel.innerText = "จำนวนเงินที่ต้องการตั้งหนี้เพิ่ม:";
-      }
-    }
-
-    document.getElementById("billingForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const btn = document.getElementById("submitBtn");
-
-      btn.innerText = "กำลังบันทึกรายการ...";
-      btn.disabled = true;
-      notify("กำลังส่งข้อมูล...", "info");
-
-      const payload = {
-        actionType: document.getElementById("actionType").value,
-        customerName: document.getElementById("customerName").value.trim(),
-        amount: parseFloat(document.getElementById("amount").value) || 0
-      };
-
-      fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      })
-      .then(() => {
-        notify("บันทึกธุรกรรมใหม่สำเร็จแล้ว!", "success");
-        document.getElementById("billingForm").reset();
-        handleActionTypeChange();
-      })
-      .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
-      .finally(() => {
-        btn.innerText = "บันทึกรายการใหม่";
-        btn.disabled = false;
-      });
-    });
 
     function checkBalance() {
       const searchName = document.getElementById("searchName").value.trim().toLowerCase();
       const btn = document.getElementById("searchBtn");
       
       if (!searchName) {
-        notify("กรุณากรอกชื่อลูกค้าเพื่อค้นหา", "warning");
+        notify("กรุณากรอกชื่อลูกค้าเพื่อค้นหา");
         return;
       }
 
       btn.innerText = "กำลังคำนวณยอด...";
       btn.disabled = true;
-      notify("กำลังดึงประวัติธุรกรรม...", "info");
 
       fetch(WEB_APP_URL)
         .then(res => res.json())
@@ -339,9 +160,7 @@
               const row = document.createElement("tr");
               const amt = parseFloat(item.Amount) || 0;
 
-              // รวมยอดคงเหลือสุทธิ
               totalPendingSum += amt;
-
               const isPayment = amt < 0;
               const displayAmt = Math.abs(amt).toLocaleString() + " ฿";
 
@@ -359,10 +178,9 @@
           });
 
           if (matchCount === 0) {
-            notify("ไม่พบประวัติลูกค้ารายนี้ในระบบ", "warning");
+            notify("ไม่พบประวัติลูกค้ารายนี้ในระบบ");
             document.getElementById("resultArea").style.display = "none";
           } else {
-            notify(`พบประวัติธุรกรรม ${matchCount} รายการ`, "success");
             const finalBox = document.getElementById("totalPendingBox");
             finalBox.innerText = "สรุปยอดค้างชำระสุทธิ: " + totalPendingSum.toLocaleString() + " บาท";
             
@@ -377,7 +195,7 @@
             document.getElementById("resultArea").style.display = "block";
           }
         })
-        .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
+        .catch(err => notify("เกิดข้อผิดพลาด: " + err))
         .finally(() => {
           btn.innerText = "ค้นหาข้อมูล";
           btn.disabled = false;
