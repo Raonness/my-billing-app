@@ -3,265 +3,236 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Huahin Admin Control - ผู้ดูแลระบบ</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <title>ระบบผู้ดูแล - อนุมัติการชำระเงิน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --sea-deep: #0a2540; --sea-blue: #0077b6; --sea-cyan: #00b4d8; --sea-foam: #90e0ef;
-      --glass-sea: rgba(10, 37, 64, 0.75); --glass-border: rgba(144, 224, 239, 0.25);
+      --sea-deep: #0a2540; --sea-blue: #0077b6; --sea-cyan: #00b4d8;
+      --sea-foam: #90e0ef; --sand-gold: #f4a261; --glass-sea: rgba(10, 37, 64, 0.75);
+      --glass-border: rgba(144, 224, 239, 0.25); --text-light: #f8fafc;
     }
-    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.25s ease; }
-    body {
-      background: linear-gradient(180deg, rgba(10,37,64,0.92) 0%, rgba(0,119,182,0.75) 100%),
-                  url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') center/cover fixed;
-      color: white; min-height: 100vh; padding: 25px 10px; margin: 0; display: flex; justify-content: center;
-    }
+    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.2s ease; }
+    body { background: var(--sea-deep); color: var(--text-light); min-height: 100vh; margin: 0; padding: 25px 15px; }
+    .container { max-width: 950px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .header h1 { font-size: 24px; margin: 0; color: var(--sea-foam); }
+    .btn-back { background: rgba(255,255,255,0.1); color: var(--sea-foam); text-decoration: none; padding: 8px 16px; border-radius: 12px; font-size: 14px; border: 1px solid var(--glass-border); }
     
-    /* Loader Overlay */
-    .loader-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(10, 37, 64, 0.85); backdrop-filter: blur(6px);
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      z-index: 999999; opacity: 0; pointer-events: none; transition: opacity 0.3s;
-    }
-    .loader-overlay.active { opacity: 1; pointer-events: auto; }
-    .spinner {
-      width: 50px; height: 50px; border: 4px solid var(--glass-border);
-      border-top-color: #22c55e; border-radius: 50%;
-      animation: spin 1s linear infinite; margin-bottom: 15px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loader-text { color: white; font-size: 16px; font-weight: 500; letter-spacing: 1px; }
-
-    .container { width: 100%; max-width: 850px; }
     .card {
-      background: var(--glass-sea); backdrop-filter: blur(18px);
-      border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; margin-bottom: 25px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      background: var(--glass-sea); backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); margin-bottom: 25px;
     }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .top-bar h1 { font-size: 20px; margin: 0; color: var(--sea-foam); }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--sea-foam); }
-    input, select {
-      width: 100%; padding: 12px; background: rgba(10, 37, 64, 0.85);
-      border: 1px solid var(--glass-border); border-radius: 10px; color: white; outline: none;
-    }
-    .btn { padding: 8px 14px; border: none; border-radius: 10px; font-weight: 500; cursor: pointer; font-size: 13px; }
-    .btn-submit { width: 100%; background: linear-gradient(135deg, var(--sea-cyan), var(--sea-blue)); color: white; padding: 12px; }
-    .btn-agree { background: #22c55e; color: #0a2540; font-weight: 600; margin-right: 5px; }
-    .btn-reject { background: #f43f5e; color: white; font-weight: 600; }
-    .btn-bulk { width: 100%; background: linear-gradient(135deg, #f97316, #ea580c); color: white; padding: 12px; margin-bottom: 20px; font-size: 14px; }
-    .btn-nav { background: rgba(255,255,255,0.1); color: white; text-decoration: none; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--glass-border); font-size: 13px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 12px 10px; color: var(--sea-foam); border-bottom: 1px solid var(--glass-border); }
+    td { padding: 14px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); vertical-align: middle; }
     
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
-    th { text-align: left; padding: 10px; color: var(--sea-foam); border-bottom: 1px solid var(--glass-border); }
-    td { padding: 12px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999999; }
-    .toast { padding: 12px 20px; border-radius: 10px; background: rgba(10,37,64,0.95); border: 1px solid var(--glass-border); color: white; margin-bottom: 10px;}
+    .btn-approve { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; padding: 7px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 600; margin-right: 4px; }
+    .btn-reject { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 7px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 600; }
+    
+    /* ปุ่มดูสลิป */
+    .btn-slip { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; }
+    .btn-slip:hover { background: #1d4ed8; transform: translateY(-1px); }
+    .no-slip { color: #64748b; font-size: 12px; font-style: italic; }
+
+    .badge-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 4px 10px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-approved { background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 4px 10px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(34, 197, 94, 0.4); }
+    .badge-rejected { background: rgba(239, 68, 68, 0.2); color: #f87171; padding: 4px 10px; border-radius: 20px; font-size: 12px; border: 1px solid rgba(239, 68, 68, 0.4); }
+
+    /* Loader */
+    .loader-overlay { position: fixed; inset: 0; background: rgba(10,37,64,0.85); backdrop-filter: blur(5px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; opacity: 0; pointer-events: none; }
+    .loader-overlay.active { opacity: 1; pointer-events: auto; }
+    .spinner { width: 40px; height: 40px; border: 3px solid var(--glass-border); border-top-color: var(--sea-cyan); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast Notification */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 99999; }
+    .toast { padding: 12px 18px; border-radius: 10px; background: rgba(10, 37, 64, 0.95); border: 1px solid var(--glass-border); color: white; font-size: 13px; margin-bottom: 8px; }
   </style>
 </head>
 <body>
 
-  <!-- Loading Overlay -->
-  <div class="loader-overlay" id="globalLoader">
+  <div class="loader-overlay" id="loader">
     <div class="spinner"></div>
-    <div class="loader-text" id="loaderText">กำลังโหลดข้อมูล...</div>
+    <div style="margin-top:10px; color:var(--sea-foam); font-size:14px;" id="loaderText">กำลังโหลด...</div>
   </div>
 
   <div class="toast-container" id="toastContainer"></div>
 
   <div class="container">
-    <!-- หน้า Login -->
-    <div class="card" id="loginCard" style="max-width: 380px; margin: 80px auto;">
-      <h2 style="margin-top:0; text-align:center; color: var(--sea-foam);">🔒 Admin Login</h2>
-      <form id="loginForm">
-        <div class="form-group">
-          <label>รหัสผ่านผู้ดูแลระบบ:</label>
-          <input type="password" id="adminPassword" placeholder="กรอกรหัสผ่าน..." required autocomplete="current-password">
-        </div>
-        <button type="submit" class="btn btn-submit">เข้าสู่ระบบ</button>
-      </form>
+    <div class="header">
+      <h1>🔒 ระบบผู้ดูแล: อนุมัติสลิปและรายการชำระเงิน</h1>
+      <a href="index.html" class="btn-back">⬅️ กลับหน้าหลัก</a>
     </div>
 
-    <!-- แผงผู้ดูแล -->
-    <div id="adminPanel" style="display:none;">
-      <div class="top-bar">
-        <h1>🛡️ ระบบผู้ดูแล (Admin Control)</h1>
-        <div>
-          <a href="index.html" class="btn-nav">🏖️ กลับหน้าลูกค้า</a>
-          <button class="btn" style="background:#f43f5e; color:white;" onclick="logout()">ออกจากระบบ</button>
-        </div>
+    <!-- ตารางรายการที่รอตรวจสอบ -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+        <h2 style="margin:0; font-size: 18px; color: var(--sea-cyan);">⏳ รายการรอการอนุมัติ (Pending Verification)</h2>
+        <button onclick="loadData()" style="background:rgba(255,255,255,0.1); border:1px solid var(--glass-border); color:white; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:12px;">🔄 รีเฟรช</button>
       </div>
 
-      <div class="card">
-        <h2 style="margin-top:0; font-size: 17px; color: var(--sea-cyan);">⏳ รายการแจ้งชำระเงินรอยืนยัน (ล่าสุดอยู่บน)</h2>
+      <div style="overflow-x:auto;">
         <table>
-          <thead><tr><th>ชื่อลูกค้า</th><th>เวลาทำรายการ</th><th>จำนวนเงิน</th><th>ดำเนินการ</th></tr></thead>
-          <tbody id="pendingTableBody"></tbody>
+          <thead>
+            <tr>
+              <th>เลขที่รายการ</th>
+              <th>ชื่อลูกค้า</th>
+              <th>จำนวนเงิน</th>
+              <th>เวลาที่แจ้ง</th>
+              <th>หลักฐานสลิป</th>
+              <th>ดำเนินการ</th>
+            </tr>
+          </thead>
+          <tbody id="pendingTable">
+            <!-- ข้อมูลดึงมาจาก Google Sheet -->
+          </tbody>
         </table>
       </div>
+    </div>
 
-      <div class="card">
-        <h2 style="margin-top:0; font-size: 17px; color: #a855f7;">✏️ จัดการยอดลูกค้า</h2>
-        <button class="btn btn-bulk" onclick="bulkAdd10()">⚡ ➕ เพิ่มตั้งหนี้ +10 บาทให้ทุกคน</button>
-        <form id="adminActionForm">
-          <div class="form-group">
-            <label>รูปแบบทำรายการ:</label>
-            <select id="actionType">
-              <option value="deduct">🔴 เพิ่มยอดตั้งหนี้ (เพิ่มหนี้ +)</option>
-              <option value="update">🟢 รับชำระเงินโดยตรง (ลดยอด -)</option>
-              <option value="add">🔵 เพิ่มลูกค้าใหม่</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>ชื่อลูกค้า:</label>
-            <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า" required>
-          </div>
-          <div class="form-group">
-            <label>จำนวนเงิน (บาท):</label>
-            <input type="number" id="amount" placeholder="0.00" step="0.01" required>
-          </div>
-          <button type="submit" class="btn btn-submit">บันทึกรายการ</button>
-        </form>
+    <!-- ตารางประวัติที่ดำเนินการไปแล้ว -->
+    <div class="card">
+      <h2 style="margin-top:0; font-size: 18px; color: var(--sea-foam); margin-bottom: 15px;">📜 ประวัติการอนุมัติ / ปฏิเสธ ล่าสุด</h2>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>เลขที่รายการ</th>
+              <th>ชื่อลูกค้า</th>
+              <th>จำนวนเงิน</th>
+              <th>สถานะ</th>
+              <th>หลักฐานสลิป</th>
+            </tr>
+          </thead>
+          <tbody id="historyTable">
+            <!-- ข้อมูลดึงมาจาก Google Sheet -->
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
-    const ADMIN_PASS = "Project I";
 
-    function showLoader(text = "กำลังโหลด...") {
-      document.getElementById("loaderText").innerText = text;
-      document.getElementById("globalLoader").classList.add("active");
+    function showLoader(txt = "กำลังโหลด...") {
+      document.getElementById("loaderText").innerText = txt;
+      document.getElementById("loader").classList.add("active");
     }
-    function hideLoader() { document.getElementById("globalLoader").classList.remove("active"); }
+    function hideLoader() { document.getElementById("loader").classList.remove("active"); }
 
     function notify(msg, ok = true) {
       const c = document.getElementById("toastContainer");
       const t = document.createElement("div"); t.className = "toast";
       t.style.borderLeft = ok ? "4px solid #22c55e" : "4px solid #f43f5e";
-      t.innerText = msg; c.appendChild(t);
+      t.innerHTML = `${ok ? '✅' : '⚠️'} ${msg}`;
+      c.appendChild(t);
       setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      if (sessionStorage.getItem("adminLoggedIn") === "true") showAdminPanel();
-      document.getElementById("loginForm")?.addEventListener("submit", (e) => {
-        e.preventDefault();
-        if (document.getElementById("adminPassword").value.trim() === ADMIN_PASS) {
-          sessionStorage.setItem("adminLoggedIn", "true"); showAdminPanel(); notify("เข้าสู่ระบบสำเร็จ!");
-        } else notify("รหัสผ่านไม่ถูกต้อง!", false);
+    // 🖼️ ฟังก์ชันตรวจจับคีย์ URL สลิปและสร้างปุ่มกดดูสลิป
+    function getSlipLinkHTML(item) {
+      let url = "";
+
+      // ค้นหาคีย์ที่มี URL Google Drive หรือ http
+      Object.keys(item).forEach(key => {
+        const val = item[key];
+        if (typeof val === 'string' && val.startsWith('http')) {
+          url = val;
+        }
       });
-    });
 
-    function showAdminPanel() {
-      document.getElementById("loginCard").style.display = "none";
-      document.getElementById("adminPanel").style.display = "block";
-      loadPendingPayments();
+      if (url) {
+        return `<a href="${url}" target="_blank" class="btn-slip">🖼️ ดูสลิป</a>`;
+      }
+      return `<span class="no-slip">ไม่มีสลิป</span>`;
     }
-    function logout() { sessionStorage.removeItem("adminLoggedIn"); location.reload(); }
 
-    // อัปเดต: โหลดรายการชำระเงินและส่งค่า ชื่อ/จำนวนเงิน เข้าปุ่มกด
-    function loadPendingPayments() {
-      showLoader("กำลังโหลดรายการรอยืนยัน...");
+    function loadData() {
+      showLoader("กำลังดึงข้อมูลล่าสุด...");
       fetch(WEB_APP_URL)
-        .then(r => r.json())
+        .then(res => res.json())
         .then(data => {
-          const tbody = document.getElementById("pendingTableBody"); tbody.innerHTML = "";
-          let count = 0;
+          const pendingTbody = document.getElementById("pendingTable");
+          const historyTbody = document.getElementById("historyTable");
+          pendingTbody.innerHTML = "";
+          historyTbody.innerHTML = "";
+
+          let pendingCount = 0;
+
           data.forEach(item => {
-            if (item.Status === "Pending Verification") {
-              count++;
-              const timeStr = item.Timestamp ? new Date(item.Timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
-              const amt = Math.abs(parseFloat(item.Amount)||0);
+            const status = item.Status || item.Col_4 || "";
+            const amt = parseFloat(item.Amount || item.Col_2) || 0;
+            const timeStr = item.Timestamp ? new Date(item.Timestamp).toLocaleString('th-TH') : '-';
+            const slipHTML = getSlipLinkHTML(item);
+
+            if (status === "Pending Verification") {
+              pendingCount++;
               const tr = document.createElement("tr");
-              
               tr.innerHTML = `
-                <td style="font-weight:500;">${item.Customer_Name || '-'}</td>
-                <td style="font-size:11px; color:#cbd5e1;">${timeStr}</td>
-                <td style="color:#86efac; font-weight:600;">-${amt.toLocaleString()} ฿</td>
+                <td style="font-size:12px; color:var(--sea-foam);">${item.Invoice_ID || item.Col_0 || '-'}</td>
+                <td style="font-weight:600;">${item.Customer_Name || item.Col_1 || '-'}</td>
+                <td style="color:#86efac; font-weight:600;">${Math.abs(amt).toLocaleString()} ฿</td>
+                <td style="font-size:12px; color:#cbd5e1;">${timeStr}</td>
+                <td>${slipHTML}</td>
                 <td>
-                  <button class="btn btn-agree" onclick="processPayment(${item.rowIndex}, 'approve', '${item.Customer_Name}', ${amt})">ตกลง</button>
-                  <button class="btn btn-reject" onclick="processPayment(${item.rowIndex}, 'reject', '${item.Customer_Name}', ${amt})">ปฏิเสธ</button>
-                </td>`;
-              tbody.appendChild(tr);
+                  <button class="btn-approve" onclick="handleAction(${item.rowIndex}, 'approve')">อนุมัติ</button>
+                  <button class="btn-reject" onclick="handleAction(${item.rowIndex}, 'reject')">ปฏิเสธ</button>
+                </td>
+              `;
+              pendingTbody.appendChild(tr);
+            } else {
+              let badge = `<span class="badge-approved">✅ อนุมัติแล้ว</span>`;
+              if (status === "Rejected") badge = `<span class="badge-rejected">❌ ปฏิเสธ</span>`;
+              else if (amt > 0) badge = `<span style="color:#38bdf8;">📌 ตั้งหนี้</span>`;
+
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td style="font-size:12px; color:var(--sea-foam);">${item.Invoice_ID || item.Col_0 || '-'}</td>
+                <td>${item.Customer_Name || item.Col_1 || '-'}</td>
+                <td style="font-weight:600;">${amt.toLocaleString()} ฿</td>
+                <td>${badge}</td>
+                <td>${slipHTML}</td>
+              `;
+              historyTbody.appendChild(tr);
             }
           });
-          if (count === 0) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--sea-foam);">ไม่มีรายการรอยืนยัน</td></tr>`;
+
+          if (pendingCount === 0) {
+            pendingTbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding:20px;">ไม่มีรายการที่รอการอนุมัติ ✨</td></tr>`;
+          }
         })
-        .catch(() => notify("โหลดข้อมูลผิดพลาด", false))
+        .catch(err => notify("เกิดข้อผิดพลาดในการโหลดข้อมูล", false))
         .finally(() => hideLoader());
     }
 
-    // อัปเดต: แสดง Popup ยืนยันแบบละเอียดสำหรับส่วนจัดการอนุมัติ
-    function processPayment(rowIndex, statusType, customerName, amount) {
-      const isAgree = statusType === 'approve';
-      const actionText = isAgree ? '✅ อนุมัติ (ตกลง)' : '❌ ปฏิเสธ';
-      
-      const confirmMessage = `⚠️ ยืนยันการตรวจสอบรายการ\n\n👤 ลูกค้า: ${customerName}\n💰 ยอดชำระ: ${amount.toLocaleString()} บาท\n\nคุณต้องการ "${actionText}" รายการนี้ใช่หรือไม่?`;
-      
-      if (!confirm(confirmMessage)) {
-        return; 
-      }
+    function handleAction(rowIndex, action) {
+      const actionText = action === 'approve' ? 'อนุมัติ' : 'ปฏิเสธ';
+      if (!confirm(`คุณต้องการ "${actionText}" รายการนี้ใช่หรือไม่?`)) return;
 
-      showLoader("กำลังประมวลผล...");
+      showLoader(`กำลังดำเนินการ ${actionText}...`);
 
       fetch(WEB_APP_URL, {
-        method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ actionType: statusType, rowIndex: rowIndex })
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ actionType: action, rowIndex: rowIndex })
       })
-      .then(() => { notify(isAgree ? "อนุมัติรายการสำเร็จ!" : "ปฏิเสธรายการเรียบร้อย!"); loadPendingPayments(); })
-      .catch(() => { notify("เกิดข้อผิดพลาด กรุณาลองใหม่", false); hideLoader(); });
-    }
-
-    // ส่วนเพิ่มยอดตั้งหนี้ +10 ทุกคน (มี confirm อยู่แล้ว)
-    function bulkAdd10() {
-      if (!confirm("ยืนยันการตั้งหนี้ +10 บาทให้ทุกคน?")) return;
-      showLoader("กำลังรันสคริปต์ตั้งหนี้ +10 บาท...");
-
-      fetch(WEB_APP_URL, {
-        method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ actionType: "bulkAdd10" })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          notify(`ทำรายการ ${actionText} เรียบร้อยแล้ว`);
+          loadData();
+        } else {
+          notify("เกิดข้อผิดพลาด: " + (data.message || ""), false);
+        }
       })
-      .then(() => notify("เพิ่มตั้งหนี้ +10 บาทให้ทุกคนสำเร็จ!"))
-      .catch(() => notify("ทำรายการไม่สำเร็จ", false))
+      .catch(err => notify("ไม่สามารถเชื่อมต่อระบบได้", false))
       .finally(() => hideLoader());
     }
 
-    // อัปเดต: แสดง Popup ยืนยันแบบละเอียดสำหรับฟอร์มกรอกข้อมูลเอง
-    document.getElementById("adminActionForm")?.addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const actionTypeElement = document.getElementById("actionType");
-      const actionText = actionTypeElement.options[actionTypeElement.selectedIndex].text;
-      const customerName = document.getElementById("customerName").value.trim();
-      const amount = document.getElementById("amount").value;
-
-      const confirmMessage = `⚠️ กรุณายืนยันการทำรายการ\n\n🔹 รูปแบบ: ${actionText}\n👤 ลูกค้า: ${customerName}\n💰 จำนวนเงิน: ${amount} บาท\n\nคุณต้องการบันทึกข้อมูลนี้ใช่หรือไม่?`;
-      
-      if (!confirm(confirmMessage)) {
-        return; 
-      }
-
-      showLoader("กำลังบันทึกข้อมูล...");
-
-      fetch(WEB_APP_URL, {
-        method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          actionType: actionTypeElement.value,
-          customerName: customerName,
-          amount: parseFloat(amount) || 0
-        })
-      })
-      .then(() => { 
-        notify("บันทึกรายการสำเร็จ!"); 
-        document.getElementById("adminActionForm").reset(); 
-      })
-      .catch(() => notify("บันทึกข้อมูลไม่สำเร็จ", false))
-      .finally(() => hideLoader());
-    });
+    window.onload = loadData;
   </script>
 </body>
 </html>
