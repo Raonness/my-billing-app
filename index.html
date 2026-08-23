@@ -6,7 +6,6 @@
   <title>เริ่มต้นเที่ยวหัวหินกับพวกเรา - Huahin Ocean Service</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- โหลด Library สำหรับสร้าง QR Code ที่เสถียรที่สุด -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   
   <style>
@@ -87,6 +86,7 @@
       width: 100%; padding: 12px 16px; background: rgba(10, 37, 64, 0.75);
       border: 1px solid var(--glass-border); border-radius: 12px; color: white; font-size: 15px; outline: none;
     }
+    input[type="file"] { padding: 8px 12px; background: rgba(255, 255, 255, 0.05); }
     .btn { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
     .btn-primary { background: linear-gradient(135deg, var(--sea-cyan), var(--sea-blue)); color: white; }
     .btn-success { background: linear-gradient(135deg, #22c55e, #059669); color: white; margin-top: 10px; }
@@ -113,18 +113,12 @@
       padding: 25px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    .qr-box {
-      background: white; padding: 16px; border-radius: 16px; display: inline-block; margin: 15px 0;
-    }
-    #qrCodeContainer img, #qrCodeContainer canvas {
-      margin: 0 auto;
-      display: block;
-    }
+    .qr-box { background: white; padding: 16px; border-radius: 16px; display: inline-block; margin: 15px 0; }
+    #qrCodeContainer img, #qrCodeContainer canvas { margin: 0 auto; display: block; }
   </style>
 </head>
 <body>
 
-  <!-- Loading Overlay -->
   <div class="loader-overlay" id="globalLoader">
     <div class="spinner"></div>
     <div class="loader-text" id="loaderText">กำลังโหลด...</div>
@@ -133,14 +127,12 @@
   <div class="ocean-curtain" id="oceanCurtain"></div>
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- Landing Page -->
   <div id="welcomePage">
     <h1 class="hero-title">หัวหินกับพวกเรา 🌊</h1>
     <p class="hero-subtitle">สัมผัสประสบการณ์สุดพิเศษ และจัดการข้อมูลบริการได้อย่างง่ายดาย</p>
     <button class="btn-start" onclick="startExperience()">เริ่มกันเลย</button>
   </div>
 
-  <!-- Main Content -->
   <div id="mainContent">
     <div class="container">
       <div class="top-bar">
@@ -163,7 +155,6 @@
             <tbody id="resultTableBody"></tbody>
           </table>
           <div class="summary-box" id="totalPendingBox">ยอดค้างชำระคงเหลือ: 0.00 บาท</div>
-          
           <button class="btn btn-qr" onclick="openQrModalFromTotal()">📱 สแกนจ่าย PromptPay QR จากยอดคงเหลือ</button>
         </div>
       </div>
@@ -179,8 +170,15 @@
             <label>จำนวนเงินที่โอนชำระ (บาท):</label>
             <input type="number" id="payAmount" placeholder="0.00" step="0.01" required>
           </div>
-          <button type="button" class="btn btn-qr" style="margin-top: 0; margin-bottom: 10px;" onclick="openQrModalFromInput()">📱 เปิดสแกน QR Code ตามยอดเงินนี้</button>
-          <button type="submit" class="btn btn-success">ส่งข้อมูลชำระเงิน</button>
+          <button type="button" class="btn btn-qr" style="margin-top: 0; margin-bottom: 10px;" onclick="openQrModalFromInput()">📱 1. เปิดสแกน QR Code เพื่อโอนเงิน</button>
+          
+          <!-- เพิ่มช่องอัปโหลดสลิป -->
+          <div class="form-group" style="margin-top: 15px;">
+            <label style="color: #fca5a5;">อัปโหลดภาพสลิปเพื่อยืนยันอัตโนมัติ (บังคับ):</label>
+            <input type="file" id="slipUpload" accept="image/*" required>
+          </div>
+          
+          <button type="submit" class="btn btn-success">✅ 2. ส่งข้อมูลและตรวจสอบสลิป</button>
         </form>
       </div>
     </div>
@@ -192,9 +190,7 @@
       <h3 style="margin-top:0; color: var(--sea-foam); font-size: 18px;">📱 สแกนจ่ายผ่าน PromptPay</h3>
       <p style="margin: 5px 0; font-size: 13px; color: #cbd5e1;">ชื่อลูกค้า: <b id="modalCustomerName" style="color:white;">-</b></p>
       
-      <div class="qr-box">
-        <div id="qrCodeContainer"></div>
-      </div>
+      <div class="qr-box"><div id="qrCodeContainer"></div></div>
 
       <div style="font-size: 20px; font-weight: 600; color: #86efac; margin-bottom: 15px;">
         ยอดชำระ: <span id="modalAmountDisplay">0.00</span> บาท
@@ -206,10 +202,9 @@
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
-    const PROMPTPAY_NUMBER = "004666016949996"; // PromptPay ID 15 หลัก
+    const PROMPTPAY_NUMBER = "004666016949996"; 
     let currentTotalPending = 0;
 
-    // ฟังก์ชันสร้าง EMVCo Payload สำหรับ PromptPay รองรับ e-Wallet ID 15 หลัก
     function generatePromptPayPayload(target, amount) {
       function sanitizeInput(input) { return input.replace(/[^0-9]/g, ''); }
       function formatField(id, value) { return id + ('0' + value.length).slice(-2) + value; }
@@ -226,9 +221,9 @@
       }
 
       const cleanTarget = sanitizeInput(target);
-      let targetType = '03'; // e-Wallet ID (15 หลัก)
-      if (cleanTarget.length === 10) targetType = '01'; // Phone
-      else if (cleanTarget.length === 13) targetType = '02'; // ID Card/Tax ID
+      let targetType = '03';
+      if (cleanTarget.length === 10) targetType = '01';
+      else if (cleanTarget.length === 13) targetType = '02';
 
       let targetFormatted = cleanTarget;
       if (targetType === '01') targetFormatted = '0066' + cleanTarget.substring(1);
@@ -241,10 +236,7 @@
                     formatField('53', '764') +
                     formatField('58', 'TH');
 
-      if (amount && amount > 0) {
-        payload += formatField('54', parseFloat(amount).toFixed(2));
-      }
-
+      if (amount && amount > 0) payload += formatField('54', parseFloat(amount).toFixed(2));
       payload += '6304';
       return payload + crc16(payload);
     }
@@ -260,9 +252,8 @@
       curtain.classList.add("active");
       setTimeout(() => {
         document.getElementById("welcomePage").style.display = "none";
-        const main = document.getElementById("mainContent");
-        main.style.display = "block";
-        setTimeout(() => { main.style.opacity = "1"; }, 50);
+        document.getElementById("mainContent").style.display = "block";
+        setTimeout(() => { document.getElementById("mainContent").style.opacity = "1"; }, 50);
       }, 700);
       setTimeout(() => { curtain.classList.remove("active"); }, 1200);
     }
@@ -295,7 +286,7 @@
               const isPending = (status === "Pending Verification");
 
               if (!isPending && status !== "Rejected") total += amt;
-              const timeStr = item.Timestamp ? new Date(item.Timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+              const timeStr = item.Timestamp ? new Date(item.Timestamp).toLocaleString('th-TH') : '-';
 
               let badge = `<span style="color:#f59e0b;">⏳ รออนุมัติ</span>`;
               if (status === "Rejected") badge = `<span style="color:#f43f5e;">❌ ปฏิเสธ</span>`;
@@ -326,60 +317,58 @@
         .finally(() => hideLoader());
     }
 
-    // ฟังก์ชันสร้างและแสดง QR Code
     function showQrModal(customerName, amount) {
-      if (!amount || amount <= 0) {
-        notify("ยอดเงินต้องมากกว่า 0 บาทเพื่อสร้าง QR Code", false);
-        return;
-      }
+      if (!amount || amount <= 0) return notify("ยอดเงินต้องมากกว่า 0 บาท", false);
       document.getElementById("modalCustomerName").innerText = customerName || "ไม่ระบุชื่อ";
       document.getElementById("modalAmountDisplay").innerText = parseFloat(amount).toLocaleString(undefined, {minimumFractionDigits: 2});
       
       const container = document.getElementById("qrCodeContainer");
-      container.innerHTML = ""; // ล้างคิวอาร์โค้ดเก่า
-
+      container.innerHTML = ""; 
       const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, amount);
       
-      // วาดรูป QR Code ด้วย QRCodeJS
-      new QRCode(container, {
-        text: payload,
-        width: 200,
-        height: 200,
-        colorDark : "#000000",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.M
-      });
-
+      new QRCode(container, { text: payload, width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M });
       document.getElementById("qrModal").style.display = "flex";
     }
 
-    function openQrModalFromTotal() {
-      const name = document.getElementById("searchName").value.trim();
-      showQrModal(name, currentTotalPending);
-    }
+    function openQrModalFromTotal() { showQrModal(document.getElementById("searchName").value.trim(), currentTotalPending); }
+    function openQrModalFromInput() { showQrModal(document.getElementById("payCustomerName").value.trim(), parseFloat(document.getElementById("payAmount").value) || 0); }
+    function closeQrModal() { document.getElementById("qrModal").style.display = "none"; }
 
-    function openQrModalFromInput() {
-      const name = document.getElementById("payCustomerName").value.trim();
-      const amount = parseFloat(document.getElementById("payAmount").value) || 0;
-      showQrModal(name, amount);
-    }
-
-    function closeQrModal() {
-      document.getElementById("qrModal").style.display = "none";
-    }
-
-    document.getElementById("clientPaymentForm").addEventListener("submit", function(e) {
+    // ฟังก์ชันจัดการฟอร์มเมื่อกด Submit และอ่านภาพสลิป
+    document.getElementById("clientPaymentForm").addEventListener("submit", async function(e) {
       e.preventDefault();
-      showLoader("กำลังส่งข้อมูลชำระเงิน...");
+      const fileInput = document.getElementById('slipUpload');
+      const file = fileInput.files[0];
+      
+      if (!file) return notify("กรุณาแนบภาพสลิปก่อนส่งข้อมูล", false);
+      
+      showLoader("กำลังตรวจสอบสลิปและบันทึกข้อมูล... (อาจใช้เวลาสักครู่)");
+
+      // แปลงภาพเป็น Base64
+      let base64Image = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(',')[1]); // เอาเฉพาะส่วนข้อมูล Raw
+        reader.readAsDataURL(file);
+      });
 
       fetch(WEB_APP_URL, {
         method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ actionType: "update", customerName: document.getElementById("payCustomerName").value.trim(), amount: parseFloat(document.getElementById("payAmount").value) || 0 })
+        body: JSON.stringify({ 
+          actionType: "update_with_slip", 
+          customerName: document.getElementById("payCustomerName").value.trim(), 
+          amount: parseFloat(document.getElementById("payAmount").value) || 0,
+          slipBase64: base64Image
+        })
       })
-      .then(() => {
-        notify("แจ้งชำระเงินเรียบร้อยแล้ว! (รอการตรวจสอบ)");
-        document.getElementById("clientPaymentForm").reset();
-        if (document.getElementById("searchName").value.trim()) checkBalance();
+      .then(r => r.json())
+      .then((data) => {
+        if (data.status === "success") {
+          notify(data.message); // แจ้งเตือนสลิปถูกต้อง
+          document.getElementById("clientPaymentForm").reset();
+          if (document.getElementById("searchName").value.trim()) checkBalance();
+        } else {
+          notify(data.message || "สลิปไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง", false);
+        }
       })
       .catch(() => notify("ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่", false))
       .finally(() => hideLoader());
