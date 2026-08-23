@@ -14,6 +14,7 @@
       --accent-green: #22c55e;
       --accent-red: #f43f5e;
       --accent-purple: #a855f7;
+      --accent-amber: #f59e0b;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -65,6 +66,16 @@
     th { text-align: left; padding: 10px 8px; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
     td { padding: 10px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
 
+    .status-badge {
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .badge-pending { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-approved { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); border: 1px solid rgba(34, 197, 94, 0.3); }
+    .badge-charge { background: rgba(244, 63, 94, 0.15); color: var(--accent-red); border: 1px solid rgba(244, 63, 94, 0.3); }
+
     .summary-box {
       background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(168, 85, 247, 0.15));
       border: 1px solid rgba(244, 63, 94, 0.3);
@@ -106,7 +117,7 @@
           <thead>
             <tr>
               <th>รายการ</th>
-              <th>ประเภท</th>
+              <th>สถานะ</th>
               <th>จำนวนเงิน</th>
             </tr>
           </thead>
@@ -150,7 +161,6 @@
       }, 3500);
     }
 
-    // ฟังก์ชันค้นหายอดค้างชำระ
     function checkBalance() {
       const searchName = document.getElementById("searchName").value.trim().toLowerCase();
       const btn = document.getElementById("searchBtn");
@@ -176,17 +186,32 @@
               matchCount++;
               const row = document.createElement("tr");
               const amt = parseFloat(item.Amount) || 0;
+              const status = item.Status || "";
 
-              totalPendingSum += amt;
-              const isPayment = amt < 0;
+              let statusHTML = "";
+              let isPendingVerification = (status === "Pending Verification");
+
+              // ⚡ รวมยอดเฉพาะรายการที่เป็น "ยอดตั้งหนี้" หรือ "ยอดชำระที่ Admin อนุมัติแล้ว" เท่านั้น
+              if (!isPendingVerification) {
+                totalPendingSum += amt;
+              }
+
+              // จัดการการแสดงผลป้ายสถานะ
+              if (isPendingVerification) {
+                statusHTML = `<span class="status-badge badge-pending">⏳ รอ Admin ตรวจสอบ</span>`;
+              } else if (amt < 0) {
+                statusHTML = `<span class="status-badge badge-approved">✅ ชำระแล้ว</span>`;
+              } else {
+                statusHTML = `<span class="status-badge badge-charge">📌 ตั้งหนี้</span>`;
+              }
+
+              const displayAmt = Math.abs(amt).toLocaleString() + " ฿";
 
               row.innerHTML = `
                 <td style="font-size:12px; color:var(--accent-cyan);">${item.Invoice_ID || '-'}</td>
-                <td style="color:${isPayment ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:500;">
-                  ${item.Status || (isPayment ? 'Payment' : 'Charge')}
-                </td>
-                <td style="color:${isPayment ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;">
-                  ${isPayment ? '-' : '+'}${Math.abs(amt).toLocaleString()} ฿
+                <td>${statusHTML}</td>
+                <td style="color:${amt < 0 ? (isPendingVerification ? 'var(--accent-amber)' : 'var(--accent-green)') : 'var(--accent-red)'}; font-weight:600;">
+                  ${amt < 0 ? '-' : '+'}${displayAmt}
                 </td>
               `;
               tableBody.appendChild(row);
@@ -209,7 +234,6 @@
             }
 
             document.getElementById("resultArea").style.display = "block";
-            // นำชื่อไปใส่อัตโนมัติในช่องแจ้งชำระ
             document.getElementById("payCustomerName").value = document.getElementById("searchName").value;
           }
         })
@@ -220,15 +244,14 @@
         });
     }
 
-    // ฟังก์ชันลูกค้าระบุชำระเงินเข้ามา
     document.getElementById("clientPaymentForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const btn = document.getElementById("payBtn");
-      btn.innerText = "กำลังส่งข้อมูลการชำระเงิน...";
+      btn.innerText = "กำลังส่งข้อมูล...";
       btn.disabled = true;
 
       const payload = {
-        actionType: "update", // update หมายถึง ชำระเงิน (ลดยอดค้าง)
+        actionType: "update",
         customerName: document.getElementById("payCustomerName").value.trim(),
         amount: parseFloat(document.getElementById("payAmount").value) || 0
       };
@@ -239,10 +262,10 @@
         body: JSON.stringify(payload)
       })
       .then(() => {
-        notify("แจ้งชำระเงินสำเร็จแล้ว!", true);
+        notify("แจ้งชำระเงินเรียบร้อยแล้ว! (รอยืนยันจาก Admin)", true);
         document.getElementById("clientPaymentForm").reset();
         if (document.getElementById("searchName").value.trim()) {
-          checkBalance(); // อัปเดตตารางยอดคงเหลือทันที
+          checkBalance();
         }
       })
       .catch(err => notify("เกิดข้อผิดพลาด: " + err, false))
