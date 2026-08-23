@@ -3,273 +3,278 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Service - ตรวจสอบยอดและแจ้งชำระเงิน</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <title>เริ่มต้นเที่ยวหัวหินกับพวกเรา - Huahin Ocean Service</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
-      --glass-bg: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.12);
-      --accent-cyan: #38bdf8;
-      --accent-green: #22c55e;
-      --accent-red: #f43f5e;
-      --accent-purple: #a855f7;
-      --accent-amber: #f59e0b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --sea-deep: #0a2540;
+      --sea-blue: #0077b6;
+      --sea-cyan: #00b4d8;
+      --sea-foam: #90e0ef;
+      --sand-gold: #f4a261;
+      --coral-red: #e76f51;
+      --glass-sea: rgba(10, 37, 64, 0.55);
+      --glass-border: rgba(144, 224, 239, 0.25);
+      --text-light: #f8fafc;
     }
 
-    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.25s ease; }
-    body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; padding: 20px 10px; margin: 0; display: flex; flex-direction: column; align-items: center; }
+    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.3s ease; }
+    body { background: var(--sea-deep); color: var(--text-light); min-height: 100vh; margin: 0; overflow-x: hidden; }
 
-    .container { width: 100%; max-width: 650px; }
+    /* 🌊 1. Landing Page หน้าต้อนรับธีมทะเลหัวหิน */
+    #welcomePage {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: linear-gradient(rgba(10, 37, 64, 0.4), rgba(10, 37, 64, 0.7)), 
+                  url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 9999; text-align: center; padding: 20px;
+    }
+
+    .hero-title {
+      font-size: 3rem; font-weight: 700; margin-bottom: 10px;
+      text-shadow: 0 4px 15px rgba(0, 180, 216, 0.6);
+      background: linear-gradient(to right, #ffffff, var(--sea-foam));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle { font-size: 1.3rem; color: var(--sea-foam); margin-bottom: 30px; letter-spacing: 1px; }
+
+    .btn-start {
+      padding: 16px 45px; font-size: 1.2rem; font-weight: 600;
+      color: #0a2540; background: linear-gradient(135deg, var(--sea-foam), var(--sea-cyan));
+      border: none; border-radius: 50px; cursor: pointer;
+      box-shadow: 0 0 25px rgba(0, 180, 216, 0.6), 0 0 50px rgba(0, 180, 216, 0.2);
+      animation: pulse 2s infinite;
+    }
+    .btn-start:hover { transform: scale(1.08); box-shadow: 0 0 35px rgba(144, 224, 239, 0.9); }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* 🌊 อนิเมชั่นคลื่นเปิดตัวสุดอลังการ */
+    .ocean-curtain {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(180deg, var(--sea-cyan), var(--sea-deep));
+      z-index: 10000; pointer-events: none; opacity: 0; transform: translateY(100%);
+      transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+    .ocean-curtain.active { transform: translateY(0%); opacity: 1; }
+
+    /* 🌊 2. หน้าหลักธีมทะเล */
+    #mainContent {
+      display: none; opacity: 0; transition: opacity 1s ease;
+      min-height: 100vh; padding: 30px 15px;
+      background: linear-gradient(180deg, rgba(10,37,64,0.85) 0%, rgba(0,119,182,0.6) 100%),
+                  url('https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1920&q=80') center/cover fixed no-repeat;
+    }
+
+    .container { max-width: 700px; margin: 0 auto; }
     .card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 25px;
-      margin-bottom: 25px;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      background: var(--glass-sea); backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border); border-radius: 24px;
+      padding: 28px; margin-bottom: 25px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     }
 
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .top-bar h1 { font-size: 22px; margin: 0; background: linear-gradient(to right, #38bdf8, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .top-bar h1 { font-size: 22px; margin: 0; color: var(--sea-foam); text-shadow: 0 2px 8px rgba(0,180,216,0.4); }
 
     .form-group { margin-bottom: 18px; }
-    label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
+    label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--sea-foam); }
     input {
-      width: 100%;
-      padding: 12px 16px;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      color: white;
-      font-size: 15px;
-      outline: none;
+      width: 100%; padding: 12px 16px; background: rgba(10, 37, 64, 0.7);
+      border: 1px solid var(--glass-border); border-radius: 12px; color: white; font-size: 15px; outline: none;
     }
 
-    .btn {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 12px;
-      font-weight: 500;
-      font-size: 15px;
-      cursor: pointer;
-    }
-    .btn-primary { background: linear-gradient(135deg, #0284c7, #2563eb); color: white; }
-    .btn-success { background: linear-gradient(135deg, #16a34a, #059669); color: white; margin-top: 10px; }
-    .btn-admin-link { background: rgba(255, 255, 255, 0.08); color: var(--text-muted); text-decoration: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; border: 1px solid var(--glass-border); }
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: linear-gradient(135deg, var(--sea-cyan), var(--sea-blue)); color: white; }
+    .btn-success { background: linear-gradient(135deg, #22c55e, #059669); color: white; margin-top: 10px; }
+    .btn-admin-link { background: rgba(255,255,255,0.1); color: var(--sea-foam); text-decoration: none; padding: 8px 14px; border-radius: 10px; font-size: 12px; border: 1px solid var(--glass-border); }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-    th { text-align: left; padding: 10px 8px; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
-    td { padding: 10px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-
-    .status-badge {
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
-    }
-    .badge-pending { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
-    .badge-approved { background: rgba(34, 197, 94, 0.15); color: var(--accent-green); border: 1px solid rgba(34, 197, 94, 0.3); }
-    .badge-charge { background: rgba(244, 63, 94, 0.15); color: var(--accent-red); border: 1px solid rgba(244, 63, 94, 0.3); }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+    th { text-align: left; padding: 10px 8px; color: var(--sea-foam); border-bottom: 1px solid var(--glass-border); }
+    td { padding: 12px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
 
     .summary-box {
-      background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(168, 85, 247, 0.15));
-      border: 1px solid rgba(244, 63, 94, 0.3);
-      padding: 15px;
-      border-radius: 14px;
-      text-align: right;
-      font-size: 18px;
-      font-weight: 600;
-      color: #fda4af;
-      margin-top: 15px;
+      background: rgba(244, 162, 97, 0.15); border: 1px solid rgba(244, 162, 97, 0.4);
+      padding: 16px; border-radius: 14px; text-align: right; font-size: 18px; font-weight: 600; color: var(--sand-gold); margin-top: 15px;
     }
 
-    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-    .toast { min-width: 250px; padding: 14px 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--glass-border); color: white; font-size: 14px; }
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 99999; }
+    .toast { padding: 14px 20px; border-radius: 12px; background: rgba(10, 37, 64, 0.95); border: 1px solid var(--glass-border); color: white; font-size: 14px; }
   </style>
 </head>
 <body>
 
+  <!-- ม่านคลื่นอนิเมชั่น -->
+  <div class="ocean-curtain" id="oceanCurtain"></div>
   <div class="toast-container" id="toastContainer"></div>
 
-  <div class="container">
-    <div class="top-bar">
-      <h1>🙋‍♂️ ระบบบริการลูกค้า</h1>
-      <a href="payment.html" class="btn-admin-link">🔒 สำหรับผู้ดูแลระบบ</a>
-    </div>
+  <!-- 1. Landing Page หน้าต้อนรับ -->
+  <div id="welcomePage">
+    <h1 class="hero-title">หัวหินกับพวกเรา 🌊</h1>
+    <p class="hero-subtitle">สัมผัสประสบการณ์สุดพิเศษ และจัดการข้อมูลการเดินทางได้อย่างง่ายดาย</p>
+    <button class="btn-start" onclick="startExperience()">เริ่มกันเลย</button>
+  </div>
 
-    <!-- ส่วนที่ 1: ตรวจสอบยอดค้าง -->
-    <div class="card">
-      <h2 style="margin-top:0; font-size: 18px; color: var(--accent-cyan);">🔍 1. ตรวจสอบยอดค้างชำระ</h2>
-      <div class="form-group">
-        <label>กรอกชื่อของคุณเพื่อค้นหา:</label>
-        <input type="text" id="searchName" placeholder="ระบุชื่อลูกค้าระบบ...">
+  <!-- 2. หน้าข้อมูลบริการ -->
+  <div id="mainContent">
+    <div class="container">
+      <div class="top-bar">
+        <h1>🏖️ สรุปยอดบริการหัวหิน</h1>
+        <a href="payment.html" class="btn-admin-link">🔒 ผู้ดูแลระบบ</a>
       </div>
-      <button class="btn btn-primary" id="searchBtn" onclick="checkBalance()">ค้นหายอดค้าง</button>
 
-      <div id="resultArea" style="display:none;">
-        <h3 style="font-size: 14px; color: var(--accent-purple); margin-top: 20px;">ประวัติรายการของคุณ</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>รายการ</th>
-              <th>สถานะ</th>
-              <th>จำนวนเงิน</th>
-            </tr>
-          </thead>
-          <tbody id="resultTableBody"></tbody>
-        </table>
-        <div class="summary-box" id="totalPendingBox">ยอดค้างชำระคงเหลือ: 0.00 บาท</div>
+      <div class="card">
+        <h2 style="margin-top:0; font-size: 18px; color: var(--sea-cyan);">🔍 ตรวจสอบยอดและประวัติทำรายการ</h2>
+        <div class="form-group">
+          <label>ระบุชื่อของคุณเพื่อค้นหา:</label>
+          <input type="text" id="searchName" placeholder="พิมพ์ชื่อลูกค้าระบบ...">
+        </div>
+        <button class="btn btn-primary" id="searchBtn" onclick="checkBalance()">ค้นหาข้อมูล</button>
+
+        <div id="resultArea" style="display:none;">
+          <h3 style="font-size: 14px; color: var(--sea-foam); margin-top: 20px;">ประวัติรายการทั้งหมด</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>รายการ</th>
+                <th>เวลาทำรายการ</th>
+                <th>สถานะ</th>
+                <th>จำนวนเงิน</th>
+              </tr>
+            </thead>
+            <tbody id="resultTableBody"></tbody>
+          </table>
+          <div class="summary-box" id="totalPendingBox">ยอดค้างชำระคงเหลือ: 0.00 บาท</div>
+        </div>
       </div>
-    </div>
 
-    <!-- ส่วนที่ 2: ฟอร์มแจ้งชำระเงินสำหรับลูกค้า -->
-    <div class="card">
-      <h2 style="margin-top:0; font-size: 18px; color: var(--accent-green);">💳 2. แจ้งชำระเงิน (Submit Payment)</h2>
-      <form id="clientPaymentForm">
-        <div class="form-group">
-          <label>ชื่อลูกค้า (ให้ตรงกับระบบ):</label>
-          <input type="text" id="payCustomerName" placeholder="ระบุชื่อของคุณ" required>
-        </div>
-        <div class="form-group">
-          <label>จำนวนเงินที่โอนชำระ (บาท):</label>
-          <input type="number" id="payAmount" placeholder="0.00" step="0.01" required>
-        </div>
-        <button type="submit" class="btn btn-success" id="payBtn">ยืนยันการแจ้งชำระเงิน</button>
-      </form>
-    </div>
+      <div class="card">
+        <h2 style="margin-top:0; font-size: 18px; color: #86efac;">💳 แจ้งชำระเงินออนไลน์</h2>
+        <form id="clientPaymentForm">
+          <div class="form-group">
+            <label>ชื่อลูกค้า (ให้ตรงกับระบบ):</label>
+            <input type="text" id="payCustomerName" placeholder="ระบุชื่อของคุณ" required>
+          </div>
+          <div class="form-group">
+            <label>จำนวนเงินที่โอนชำระ (บาท):</label>
+            <input type="number" id="payAmount" placeholder="0.00" step="0.01" required>
+          </div>
+          <button type="submit" class="btn btn-success" id="payBtn">ส่งข้อมูลชำระเงิน</button>
+        </form>
+      </div>
 
+    </div>
   </div>
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
 
-    function notify(message, isSuccess = true) {
-      const container = document.getElementById("toastContainer");
-      const toast = document.createElement("div");
-      toast.className = "toast";
-      toast.style.borderLeft = isSuccess ? "4px solid #22c55e" : "4px solid #f43f5e";
-      toast.innerHTML = `<span>${isSuccess ? '✅' : '⚠️'}</span> <span>${message}</span>`;
-      container.appendChild(toast);
+    // อนิเมชั่นคลื่นทะเลเปิดตัว
+    function startExperience() {
+      const curtain = document.getElementById("oceanCurtain");
+      curtain.classList.add("active");
+
       setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
+        document.getElementById("welcomePage").style.display = "none";
+        const main = document.getElementById("mainContent");
+        main.style.display = "block";
+        setTimeout(() => { main.style.opacity = "1"; }, 50);
+      }, 700);
+
+      setTimeout(() => {
+        curtain.classList.remove("active");
+      }, 1200);
+    }
+
+    function notify(msg, ok = true) {
+      const c = document.getElementById("toastContainer");
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.style.borderLeft = ok ? "4px solid #22c55e" : "4px solid #f43f5e";
+      t.innerHTML = `${ok ? '✅' : '⚠️'} ${msg}`;
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
     }
 
     function checkBalance() {
-      const searchName = document.getElementById("searchName").value.trim().toLowerCase();
+      const name = document.getElementById("searchName").value.trim().toLowerCase();
       const btn = document.getElementById("searchBtn");
-      
-      if (!searchName) {
-        notify("กรุณากรอกชื่อเพื่อค้นหา", false);
-        return;
-      }
+      if (!name) return notify("กรุณากรอกชื่อเพื่อค้นหา", false);
 
-      btn.innerText = "กำลังค้นหา...";
-      btn.disabled = true;
+      btn.innerText = "กำลังค้นหา..."; btn.disabled = true;
 
       fetch(WEB_APP_URL)
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => {
-          const tableBody = document.getElementById("resultTableBody");
-          tableBody.innerHTML = "";
-          let totalPendingSum = 0;
-          let matchCount = 0;
+          const tbody = document.getElementById("resultTableBody");
+          tbody.innerHTML = "";
+          let total = 0, count = 0;
 
           data.forEach(item => {
-            if (item.Customer_Name && item.Customer_Name.toString().toLowerCase().includes(searchName)) {
-              matchCount++;
-              const row = document.createElement("tr");
+            if (item.Customer_Name && item.Customer_Name.toString().toLowerCase().includes(name)) {
+              count++;
               const amt = parseFloat(item.Amount) || 0;
               const status = item.Status || "";
+              const isPending = (status === "Pending Verification");
 
-              let statusHTML = "";
-              let isPendingVerification = (status === "Pending Verification");
+              if (!isPending && status !== "Rejected") total += amt;
 
-              // รวมยอดเฉพาะรายการที่อนุมัติแล้วเท่านั้น (รายการรอยืนยันจะไม่ถูกนำมาลดยอด)
-              if (!isPendingVerification) {
-                totalPendingSum += amt;
-              }
+              // แปลงการแสดงผลเวลา
+              let timeStr = item.Timestamp ? new Date(item.Timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
 
-              if (isPendingVerification) {
-                statusHTML = `<span class="status-badge badge-pending">⏳ รอ Admin ตรวจสอบ</span>`;
-              } else if (amt < 0) {
-                statusHTML = `<span class="status-badge badge-approved">✅ ชำระแล้ว</span>`;
-              } else {
-                statusHTML = `<span class="status-badge badge-charge">📌 ตั้งหนี้</span>`;
-              }
+              let badge = `<span style="color:#f59e0b;">⏳ รออนุมัติ</span>`;
+              if (status === "Rejected") badge = `<span style="color:#f43f5e;">❌ ปฏิเสธ</span>`;
+              else if (amt < 0) badge = `<span style="color:#22c55e;">✅ ชำระแล้ว</span>`;
+              else if (!isPending) badge = `<span style="color:#38bdf8;">📌 ตั้งหนี้</span>`;
 
-              row.innerHTML = `
-                <td style="font-size:12px; color:var(--accent-cyan);">${item.Invoice_ID || '-'}</td>
-                <td>${statusHTML}</td>
-                <td style="color:${amt < 0 ? (isPendingVerification ? 'var(--accent-amber)' : 'var(--accent-green)') : 'var(--accent-red)'}; font-weight:600;">
-                  ${amt < 0 ? '-' : '+'}${Math.abs(amt).toLocaleString()} ฿
-                </td>
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td style="font-size:12px; color:var(--sea-foam);">${item.Invoice_ID || '-'}</td>
+                <td style="font-size:11px; color:#cbd5e1;">${timeStr}</td>
+                <td>${badge}</td>
+                <td style="font-weight:600; color:${amt < 0 ? '#86efac' : '#fca5a5'};">${amt < 0 ? '-' : '+'}${Math.abs(amt).toLocaleString()} ฿</td>
               `;
-              tableBody.appendChild(row);
+              tbody.appendChild(tr);
             }
           });
 
-          if (matchCount === 0) {
+          if (count === 0) {
             notify("ไม่พบประวัติชื่อนี้ในระบบ", false);
             document.getElementById("resultArea").style.display = "none";
           } else {
-            const finalBox = document.getElementById("totalPendingBox");
-            finalBox.innerText = "ยอดค้างชำระคงเหลือ: " + totalPendingSum.toLocaleString() + " บาท";
-            
-            if (totalPendingSum <= 0) {
-              finalBox.style.color = "#86efac";
-              finalBox.style.borderColor = "rgba(34, 197, 94, 0.4)";
-            } else {
-              finalBox.style.color = "#fda4af";
-              finalBox.style.borderColor = "rgba(244, 63, 94, 0.4)";
-            }
-
+            document.getElementById("totalPendingBox").innerText = "ยอดค้างชำระคงเหลือ: " + total.toLocaleString() + " บาท";
             document.getElementById("resultArea").style.display = "block";
             document.getElementById("payCustomerName").value = document.getElementById("searchName").value;
           }
         })
-        .catch(err => notify("เกิดข้อผิดพลาด: " + err, false))
-        .finally(() => {
-          btn.innerText = "ค้นหายอดค้าง";
-          btn.disabled = false;
-        });
+        .finally(() => { btn.innerText = "ค้นหาข้อมูล"; btn.disabled = false; });
     }
 
     document.getElementById("clientPaymentForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const btn = document.getElementById("payBtn");
-      btn.innerText = "กำลังส่งข้อมูล...";
-      btn.disabled = true;
-
-      const payload = {
-        actionType: "update",
-        customerName: document.getElementById("payCustomerName").value.trim(),
-        amount: parseFloat(document.getElementById("payAmount").value) || 0
-      };
+      btn.innerText = "กำลังส่ง..."; btn.disabled = true;
 
       fetch(WEB_APP_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          actionType: "update",
+          customerName: document.getElementById("payCustomerName").value.trim(),
+          amount: parseFloat(document.getElementById("payAmount").value) || 0
+        })
       })
       .then(() => {
-        notify("แจ้งชำระเงินเรียบร้อยแล้ว! (รอยืนยันจาก Admin)", true);
+        notify("แจ้งชำระเงินเรียบร้อยแล้ว! (รอ Admin ตรวจสอบ)");
         document.getElementById("clientPaymentForm").reset();
-        if (document.getElementById("searchName").value.trim()) {
-          checkBalance();
-        }
+        if (document.getElementById("searchName").value.trim()) checkBalance();
       })
-      .catch(err => notify("เกิดข้อผิดพลาด: " + err, false))
-      .finally(() => {
-        btn.innerText = "ยืนยันการแจ้งชำระเงิน";
-        btn.disabled = false;
-      });
+      .finally(() => { btn.innerText = "ส่งข้อมูลชำระเงิน"; btn.disabled = false; });
     });
   </script>
 </body>
