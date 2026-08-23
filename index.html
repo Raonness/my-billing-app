@@ -200,18 +200,20 @@
   <div class="modal" id="loginModal">
     <div class="modal-content">
       <h2 style="margin-top:0; text-align: center; color: var(--accent-cyan);">🔐 เข้าสู่ระบบ Admin</h2>
-      <div class="form-group">
-        <label>ชื่อผู้ใช้งาน (Username):</label>
-        <input type="text" id="adminUser" placeholder="Username">
-      </div>
-      <div class="form-group">
-        <label>รหัสผ่าน (Password):</label>
-        <input type="password" id="adminPass" placeholder="Password">
-      </div>
-      <div style="display: flex; gap: 10px; margin-top: 20px;">
-        <button class="btn btn-primary" onclick="handleLogin()">เข้าสู่ระบบ</button>
-        <button class="btn" style="background: transparent; color: var(--text-muted);" onclick="toggleLoginModal()">ยกเลิก</button>
-      </div>
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>ชื่อผู้ใช้งาน (Username):</label>
+          <input type="text" id="adminUser" placeholder="Username" required>
+        </div>
+        <div class="form-group">
+          <label>รหัสผ่าน (Password):</label>
+          <input type="password" id="adminPass" placeholder="Password" required>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
+          <button type="button" class="btn" style="background: transparent; color: var(--text-muted);" onclick="toggleLoginModal()">ยกเลิก</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -252,17 +254,21 @@
       }
     }
 
-    function handleLogin() {
-      const u = document.getElementById("adminUser").value;
-      const p = document.getElementById("adminPass").value;
+    function handleLogin(e) {
+      if (e) e.preventDefault(); // ป้องกันการ Refresh หน้าเว็บ
+
+      const u = document.getElementById("adminUser").value.trim();
+      const p = document.getElementById("adminPass").value.trim();
 
       if (u === "Admin" && p === "Admin1123") {
         isAdminLoggedIn = true;
         document.getElementById("adminPanel").style.display = "block";
         document.getElementById("loginToggleBtn").innerText = "🔓 ออกจากระบบ Admin";
-        toggleLoginModal();
+        
+        document.getElementById("loginModal").style.display = "none";
         document.getElementById("adminUser").value = "";
         document.getElementById("adminPass").value = "";
+        
         notify("เข้าสู่ระบบ Admin สำเร็จแล้ว!", "success");
       } else {
         notify("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!", "warning");
