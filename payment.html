@@ -139,7 +139,9 @@
     // 🔐 ระบบตรวจสอบ Login พื้นฐาน
     function checkLogin() {
       const pwd = document.getElementById("adminPassword").value;
-      if(pwd === "Admin1123") { // เปลี่ยนรหัสผ่านตรงนี้ได้เลย
+      
+      // 👇 เปลี่ยนบรรทัดนี้จาก "1234" เป็น "Admin1123" ครับ
+      if(pwd === "Admin1123") { 
         document.getElementById("loginSection").style.opacity = "0";
         setTimeout(() => {
           document.getElementById("loginSection").style.display = "none";
