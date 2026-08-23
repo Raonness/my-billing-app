@@ -2,71 +2,68 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>หัวหินกับพวกเรา - บริการข้อมูลและชำระเงิน</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบชำระเงิน - Huahin Ocean</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  
   <style>
     :root {
-      --sea-deep: #0a2540; --sea-blue: #0077b6; --sea-cyan: #00b4d8;
-      --sea-foam: #90e0ef; --sand-gold: #f4a261; --glass-sea: rgba(10, 37, 64, 0.75);
-      --glass-border: rgba(144, 224, 239, 0.25); --text-light: #f8fafc;
+      --sea-deep: #0a2540; --sea-cyan: #00b4d8; --sea-foam: #90e0ef;
+      --glass-sea: rgba(10, 37, 64, 0.75); --glass-border: rgba(144, 224, 239, 0.3);
     }
     * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.3s ease; }
-    body { background: var(--sea-deep); color: var(--text-light); min-height: 100vh; margin: 0; overflow-x: hidden; }
+    
+    /* 🌊 อนิเมชันพื้นหลังอลังการ */
+    body {
+      margin: 0; min-height: 100vh; color: white;
+      background: linear-gradient(-45deg, #0a2540, #0077b6, #00b4d8, #03045e);
+      background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+      overflow-x: hidden;
+    }
+    @keyframes gradientBG { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes float { 0% {transform: translateY(0px);} 50% {transform: translateY(-15px);} 100% {transform: translateY(0px);} }
 
-    /* Loader */
-    .loader-overlay { position: fixed; inset: 0; background: rgba(10, 37, 64, 0.85); backdrop-filter: blur(6px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; opacity: 0; pointer-events: none; }
+    .loader-overlay { position: fixed; inset: 0; background: rgba(10,37,64,0.9); backdrop-filter: blur(10px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 999999; opacity: 0; pointer-events: none; }
     .loader-overlay.active { opacity: 1; pointer-events: auto; }
-    .spinner { width: 45px; height: 45px; border: 4px solid var(--glass-border); border-top-color: var(--sea-cyan); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+    .spinner { width: 60px; height: 60px; border: 5px solid var(--glass-border); border-top-color: var(--sea-cyan); border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Welcome Page */
-    #welcomePage { position: fixed; inset: 0; background: linear-gradient(rgba(10,37,64,0.4), rgba(10,37,64,0.85)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') center/cover; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; text-align: center; padding: 20px; }
-    .hero-title { font-size: 3rem; font-weight: 700; margin-bottom: 10px; background: linear-gradient(to right, #ffffff, var(--sea-foam)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero-subtitle { font-size: 1.1rem; color: var(--sea-foam); margin-bottom: 30px; }
-    .btn-start { padding: 14px 40px; font-size: 1.1rem; font-weight: 600; color: #0a2540; background: linear-gradient(135deg, var(--sea-foam), var(--sea-cyan)); border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 0 25px rgba(0, 180, 216, 0.5); }
+    #welcomePage { position: fixed; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; text-align: center; padding: 20px; background: rgba(10, 37, 64, 0.5); backdrop-filter: blur(8px); }
+    .hero-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 700; margin-bottom: 10px; text-shadow: 0 4px 20px rgba(0,180,216,0.8); background: linear-gradient(to right, #fff, var(--sea-foam)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: float 4s ease-in-out infinite; }
+    .btn-start { padding: 15px 40px; font-size: 1.2rem; font-weight: 600; color: #0a2540; background: linear-gradient(135deg, var(--sea-foam), var(--sea-cyan)); border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 0 25px rgba(0, 180, 216, 0.6); margin-top: 30px; animation: fadeInUp 1s ease forwards 0.5s; opacity: 0; }
+    .btn-start:hover { transform: scale(1.05) translateY(-5px); box-shadow: 0 10px 30px rgba(0, 180, 216, 0.8); }
 
-    /* Main Content */
-    #mainContent { display: none; opacity: 0; padding: 25px 15px; background: linear-gradient(180deg, rgba(10,37,64,0.9) 0%, rgba(0,119,182,0.8) 100%), url('https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1920&q=80') center/cover fixed; min-height: 100vh; }
-    .container { max-width: 650px; margin: 0 auto; }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-    .top-bar h1 { font-size: 20px; margin: 0; color: var(--sea-foam); }
-    .btn-admin-link { background: rgba(255,255,255,0.1); color: var(--sea-foam); text-decoration: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; border: 1px solid var(--glass-border); }
+    #mainContent { display: none; opacity: 0; padding: 40px 15px; }
+    .container { max-width: 800px; margin: 0 auto; animation: fadeInUp 0.8s ease forwards; }
+    .card { background: var(--glass-sea); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 30px; margin-bottom: 30px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
     
-    .card { background: var(--glass-sea); backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 22px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--sea-foam); }
-    input { width: 100%; padding: 12px; background: rgba(10, 37, 64, 0.8); border: 1px solid var(--glass-border); border-radius: 12px; color: white; font-size: 15px; outline: none; }
+    /* Responsive Grid & Inputs */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+    input { width: 100%; padding: 14px 18px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: white; font-size: 16px; outline: none; transition: border-color 0.3s; }
+    input:focus { border-color: var(--sea-cyan); background: rgba(255, 255, 255, 0.1); }
     
-    .btn { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 15px; }
-    .btn-primary { background: linear-gradient(135deg, var(--sea-cyan), var(--sea-blue)); color: white; }
-    .btn-success { background: linear-gradient(135deg, #22c55e, #059669); color: white; }
-    .btn-qr { background: linear-gradient(135deg, #a855f7, #6366f1); color: white; margin-top: 10px; }
-    
-    .table-responsive { overflow-x: auto; margin-top: 15px; }
-    table { width: 100%; border-collapse: collapse; min-width: 400px; font-size: 13px; }
-    th { text-align: left; padding: 10px; color: var(--sea-foam); border-bottom: 1px solid var(--glass-border); }
-    td { padding: 12px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-    
-    .summary-box { background: rgba(244, 162, 97, 0.15); border: 1px solid rgba(244, 162, 97, 0.4); padding: 14px; border-radius: 12px; text-align: right; font-size: 16px; font-weight: 600; color: var(--sand-gold); margin-top: 15px; }
-    
-    .toast-container { position: fixed; top: 20px; right: 20px; left: 20px; z-index: 9999999; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; }
-    .toast { padding: 12px 16px; border-radius: 10px; background: rgba(10, 37, 64, 0.95); border: 1px solid var(--glass-border); color: white; font-size: 13px; margin-bottom: 8px; width: fit-content; max-width: 100%; word-break: break-word; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 15px; }
+    .btn-primary { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; margin-top: 10px; }
+    .btn-qr { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; margin-top: 15px; }
+    .btn-success { background: linear-gradient(135deg, #16a34a, #15803d); color: white; margin-bottom: 15px;}
 
-    /* Modal */
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 99999; padding: 15px; }
-    .modal-content { background: var(--sea-deep); border: 1px solid var(--glass-border); padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-height: 95vh; overflow-y: auto; }
-    .qr-box { background: white; padding: 15px; border-radius: 15px; display: inline-block; margin: 10px 0; }
-    #qrCodeContainer img, #qrCodeContainer canvas { margin: 0 auto; display: block; max-width: 100%; }
+    .table-responsive { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid var(--glass-border); }
+    table { width: 100%; border-collapse: collapse; min-width: 500px; }
+    th { padding: 15px; background: rgba(255,255,255,0.05); color: var(--sea-foam); text-align: left; }
+    td { padding: 15px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
 
-    /* Responsive adjustments */
-    @media (max-width: 480px) {
-      .hero-title { font-size: 2.2rem; }
-      .top-bar { flex-direction: column; align-items: flex-start; }
-      .card { padding: 18px; }
-      th, td { padding: 8px 5px; font-size: 12px; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); justify-content: center; align-items: center; z-index: 99999; padding: 20px; }
+    .modal-content { background: var(--sea-deep); border: 1px solid var(--glass-border); padding: 30px; border-radius: 24px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); animation: fadeInUp 0.4s ease forwards; }
+    .qr-box { background: white; padding: 20px; border-radius: 20px; display: inline-block; margin: 20px 0; box-shadow: 0 10px 25px rgba(255,255,255,0.2); }
+
+    /* Toasts */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999999; }
+    .toast { padding: 15px 25px; border-radius: 12px; background: rgba(10, 37, 64, 0.95); border: 1px solid var(--glass-border); color: white; font-size: 15px; margin-bottom: 10px; animation: fadeInUp 0.3s ease forwards; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+    @media (max-width: 600px) {
+      .card { padding: 20px; }
+      .top-bar h1 { font-size: 1.3rem; }
     }
   </style>
 </head>
@@ -74,206 +71,171 @@
 
   <div class="loader-overlay" id="globalLoader">
     <div class="spinner"></div>
-    <div style="color:var(--sea-foam); font-size:14px; font-weight:500;" id="loaderText">กำลังโหลด...</div>
+    <div style="color:var(--sea-foam); margin-top:15px; font-size:16px;">กำลังโหลด...</div>
   </div>
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- หน้าต้อนรับ -->
+  <!-- หน้า Welcome -->
   <div id="welcomePage">
-    <h1 class="hero-title">หัวหินกับพวกเรา 🌊</h1>
-    <p class="hero-subtitle">ตรวจสอบข้อมูลและแจ้งชำระเงินง่ายๆ</p>
-    <button class="btn-start" onclick="startExperience()">เริ่มกันเลย</button>
+    <h1 class="hero-title">หัวหินทริป 🌊</h1>
+    <p style="color:var(--sea-foam); font-size:1.2rem; margin-bottom: 10px; animation: fadeInUp 1s ease forwards 0.3s; opacity: 0;">ยินดีต้อนรับสู่ระบบชำระเงิน</p>
+    <button class="btn-start" onclick="startExperience()">เริ่มใช้งานระบบ</button>
   </div>
 
   <!-- หน้าหลัก -->
   <div id="mainContent">
     <div class="container">
       <div class="top-bar">
-        <h1>🏖️ สรุปยอดบริการ</h1>
-        <a href="payment.html" class="btn-admin-link">🔒 สำหรับผู้ดูแล</a>
+        <h1>🏖️ ตรวจสอบยอดและแจ้งชำระ</h1>
+        <a href="payment.html" style="color:var(--sea-foam); text-decoration:none; padding:8px 16px; border:1px solid var(--glass-border); border-radius:50px; font-size:14px;">🔒 ระบบแอดมิน</a>
       </div>
 
+      <!-- ส่วนค้นหาและแสดงยอด -->
       <div class="card">
-        <h2 style="margin-top:0; font-size: 18px; color: var(--sea-cyan);">🔍 ตรวจสอบยอดและประวัติ</h2>
-        <div class="form-group">
-          <input type="text" id="searchName" placeholder="พิมพ์ชื่อของคุณเพื่อค้นหา...">
-        </div>
-        <button class="btn btn-primary" onclick="checkBalance()">ค้นหาข้อมูล</button>
+        <label style="color:var(--sea-cyan); font-weight:600; font-size:1.1rem; display:block; margin-bottom:10px;">🔍 ตรวจสอบยอดค้างชำระ</label>
+        <input type="text" id="searchName" placeholder="พิมพ์ชื่อของคุณ...">
+        <button class="btn btn-primary" onclick="checkBalance()">ตรวจสอบข้อมูล</button>
 
-        <div id="resultArea" style="display:none;">
-          <h3 style="font-size: 14px; color: var(--sea-foam); margin-top: 20px;">ประวัติทำรายการ</h3>
+        <div id="resultArea" style="display:none; margin-top: 30px; animation: fadeInUp 0.5s ease forwards;">
           <div class="table-responsive">
             <table>
-              <thead><tr><th>รายการ</th><th>เวลา</th><th>สถานะ</th><th>จำนวนเงิน</th></tr></thead>
+              <thead><tr><th>รายการ</th><th>สถานะ</th><th>จำนวนเงิน</th></tr></thead>
               <tbody id="resultTableBody"></tbody>
             </table>
           </div>
-          <div class="summary-box" id="totalPendingBox">ยอดค้างชำระ: 0.00 ฿</div>
-          <button class="btn btn-qr" onclick="openQrModalFromTotal()">📱 สแกนจ่ายยอดคงเหลือ (QR)</button>
+          <div style="background: rgba(244, 162, 97, 0.15); border: 1px solid rgba(244,162,97,0.4); padding: 20px; border-radius: 16px; text-align: center; font-size: 1.2rem; font-weight: 700; color: #f4a261; margin-top: 20px;">
+            <span id="totalPendingBox">ยอดค้างชำระ: 0.00 บาท</span>
+          </div>
+          <button class="btn btn-qr" onclick="openQrModalFromTotal()">📱 สแกนจ่ายยอดทั้งหมด</button>
         </div>
       </div>
 
+      <!-- ส่วนแจ้งชำระอิสระ -->
       <div class="card">
-        <h2 style="margin-top:0; font-size: 18px; color: #86efac;">💳 แจ้งชำระเงินออนไลน์</h2>
-        <div class="form-group">
-          <label>ชื่อลูกค้า (ต้องตรงกับระบบ):</label>
-          <input type="text" id="payCustomerName" placeholder="ระบุชื่อของคุณ">
-        </div>
-        <div class="form-group">
-          <label>ยอดที่โอน (บาท):</label>
-          <input type="number" id="payAmount" placeholder="0.00" step="0.01">
+        <label style="color:#86efac; font-weight:600; font-size:1.1rem; display:block; margin-bottom:10px;">💳 โอนเงินและแจ้งชำระ (ระบุยอดเอง)</label>
+        <div style="display:grid; gap:15px;">
+          <input type="text" id="payCustomerName" placeholder="ชื่อลูกค้า">
+          <input type="number" id="payAmount" placeholder="จำนวนเงิน (บาท)">
         </div>
         <button class="btn btn-qr" onclick="openQrModalFromInput()">📱 สร้าง QR Code โอนเงิน</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal สแกนจ่าย -->
+  <!-- Modal ชำระเงิน -->
   <div class="modal" id="qrModal">
     <div class="modal-content">
-      <h3 style="margin-top:0; color: var(--sea-foam); font-size: 18px;">📱 สแกนจ่ายผ่าน PromptPay</h3>
-      <p style="margin: 5px 0; font-size: 13px; color: #cbd5e1;">คุณ: <b id="modalCustomerName" style="color:white;">-</b></p>
+      <h2 style="margin-top:0; color:var(--sea-cyan);">📱 สแกนจ่าย PromptPay</h2>
+      <p style="color:#cbd5e1; font-size:1.1rem;">คุณ: <b id="modalCustomerName" style="color:white;">-</b></p>
       
       <div class="qr-box"><div id="qrCodeContainer"></div></div>
 
-      <div style="font-size: 20px; font-weight: 600; color: #86efac; margin-bottom: 15px;">
-        ยอดโอน: <span id="modalAmountDisplay">0.00</span> บาท
+      <div style="font-size: 1.8rem; font-weight: 700; color: #86efac; margin-bottom: 20px;">
+        <span id="modalAmountDisplay">0.00</span> ฿
       </div>
 
-      <div style="text-align: left; background: rgba(255,255,255,0.05); padding: 14px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--glass-border);">
-        <label style="font-size: 13px; color: var(--sea-foam); margin-bottom: 8px;">📸 แนบหลักฐานการโอน (สลิป):</label>
-        <input type="file" id="modalSlipFile" accept="image/*" style="padding: 8px; font-size: 12px;">
+      <div style="text-align: left; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; margin-bottom: 20px; border: 1px solid var(--glass-border);">
+        <label style="color:var(--sea-foam); font-size:14px; margin-bottom:10px; display:block;">📸 แนบหลักฐานการโอน (สลิป):</label>
+        <input type="file" id="modalSlipFile" accept="image/*" style="border:none; padding:0; background:transparent;">
       </div>
 
-      <button class="btn btn-success" style="margin-bottom: 10px;" onclick="submitModalPayment()">✅ ส่งแจ้งชำระเงิน</button>
-      <button class="btn" style="background: rgba(255,255,255,0.15); color: white;" onclick="closeQrModal()">ปิดหน้าต่าง</button>
+      <button class="btn btn-success" onclick="submitModalPayment()">✅ ยืนยันการชำระเงิน</button>
+      <button class="btn" style="background:rgba(255,255,255,0.1); color:white;" onclick="closeQrModal()">ยกเลิก</button>
     </div>
   </div>
 
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec"; // วาง URL Web App ของคุณ
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
     const PROMPTPAY_NUMBER = "004666016949996"; 
     let currentTotalPending = 0;
+
+    function showLoader() { document.getElementById("globalLoader").classList.add("active"); }
+    function hideLoader() { document.getElementById("globalLoader").classList.remove("active"); }
+
+    function startExperience() {
+      document.getElementById("welcomePage").style.display = "none";
+      const main = document.getElementById("mainContent");
+      main.style.display = "block";
+      setTimeout(() => { main.style.opacity = "1"; }, 50);
+    }
+
+    function notify(msg, ok=true) {
+      const c = document.getElementById("toastContainer");
+      const t = document.createElement("div"); t.className = "toast";
+      t.style.borderLeft = ok ? "5px solid #22c55e" : "5px solid #ef4444";
+      t.innerHTML = msg; c.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+    }
 
     function generatePromptPayPayload(target, amount) {
       function sanitizeInput(input) { return input.replace(/[^0-9]/g, ''); }
       function formatField(id, value) { return id + ('0' + value.length).slice(-2) + value; }
-      function crc16(data) {
-        let crc = 0xFFFF;
-        for (let i = 0; i < data.length; i++) {
-          crc ^= data.charCodeAt(i) << 8;
-          for (let j = 0; j < 8; j++) { if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021; else crc <<= 1; }
-        }
-        return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
-      }
+      function crc16(data) { let crc = 0xFFFF; for (let i=0; i<data.length; i++) { crc ^= data.charCodeAt(i) << 8; for (let j=0; j<8; j++) { crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1; } } return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0'); }
       const cleanTarget = sanitizeInput(target);
-      let targetType = '03';
-      if (cleanTarget.length === 10) targetType = '01'; else if (cleanTarget.length === 13) targetType = '02'; 
-      let targetFormatted = cleanTarget;
-      if (targetType === '01') targetFormatted = '0066' + cleanTarget.substring(1);
+      let targetType = cleanTarget.length === 10 ? '01' : (cleanTarget.length === 13 ? '02' : '03');
+      let targetFormatted = targetType === '01' ? '0066' + cleanTarget.substring(1) : cleanTarget;
       const merchantInfo = formatField('00', 'A000000677010111') + formatField(targetType, targetFormatted);
-      let payload = formatField('00', '01') + formatField('01', (amount && amount > 0) ? '12' : '11') + formatField('29', merchantInfo) + formatField('53', '764') + formatField('58', 'TH');
+      let payload = formatField('00', '01') + formatField('01', (amount && amount>0) ? '12' : '11') + formatField('29', merchantInfo) + formatField('53', '764') + formatField('58', 'TH');
       if (amount && amount > 0) payload += formatField('54', parseFloat(amount).toFixed(2));
       payload += '6304'; return payload + crc16(payload);
     }
 
-    function showLoader(text = "กำลังโหลด...") { document.getElementById("loaderText").innerText = text; document.getElementById("globalLoader").classList.add("active"); }
-    function hideLoader() { document.getElementById("globalLoader").classList.remove("active"); }
-    function notify(msg, ok = true) {
-      const c = document.getElementById("toastContainer"); const t = document.createElement("div"); t.className = "toast";
-      t.style.borderLeft = ok ? "4px solid #22c55e" : "4px solid #f43f5e"; t.innerHTML = `${ok ? '✅' : '⚠️'} ${msg}`;
-      c.appendChild(t); setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
-    }
-
-    function startExperience() {
-      document.getElementById("welcomePage").style.display = "none";
-      document.getElementById("mainContent").style.display = "block";
-      setTimeout(() => document.getElementById("mainContent").style.opacity = "1", 50);
-    }
-
     function checkBalance() {
       const name = document.getElementById("searchName").value.trim().toLowerCase();
-      if (!name) return notify("กรุณาระบุชื่อ", false);
-      showLoader("กำลังค้นหาข้อมูล...");
-
-      fetch(WEB_APP_URL).then(r => r.json()).then(data => {
+      if(!name) return notify("⚠️ กรุณากรอกชื่อ", false);
+      showLoader();
+      fetch(WEB_APP_URL).then(r=>r.json()).then(data => {
         const tbody = document.getElementById("resultTableBody"); tbody.innerHTML = "";
         let total = 0, count = 0;
         data.forEach(item => {
           if (item.Customer_Name && item.Customer_Name.toString().toLowerCase().includes(name)) {
-            count++;
-            const amt = parseFloat(item.Amount) || 0; const status = item.Status || "";
-            const isPending = (status === "Pending Verification");
-            if (!isPending && status !== "Rejected") total += amt;
-            let badge = `<span style="color:#f59e0b;">⏳ รออนุมัติ</span>`;
-            if (status === "Rejected") badge = `<span style="color:#f43f5e;">❌ ปฏิเสธ</span>`;
-            else if (amt < 0) badge = `<span style="color:#22c55e;">✅ ชำระแล้ว</span>`;
-            else if (!isPending) badge = `<span style="color:#38bdf8;">📌 ตั้งหนี้</span>`;
-            
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td style="font-size:11px; color:var(--sea-foam);">${item.Invoice_ID||'-'}</td>
-                            <td style="font-size:11px;">${item.Timestamp ? new Date(item.Timestamp).toLocaleDateString('th-TH') : '-'}</td>
-                            <td>${badge}</td>
-                            <td style="font-weight:600; color:${amt<0?'#86efac':'#fca5a5'};">${Math.abs(amt).toLocaleString()} ฿</td>`;
-            tbody.appendChild(tr);
+            count++; const amt = parseFloat(item.Amount)||0; const stat = item.Status||"";
+            if(stat !== "Pending Verification" && stat !== "Rejected") total += amt;
+            let b = `<span style="color:#f59e0b;">⏳ รออนุมัติ</span>`;
+            if(stat==="Rejected") b = `<span style="color:#ef4444;">❌ ปฏิเสธ</span>`;
+            else if(amt<0) b = `<span style="color:#22c55e;">✅ ชำระแล้ว</span>`;
+            else if(stat !== "Pending Verification") b = `<span style="color:#0ea5e9;">📌 ตั้งหนี้</span>`;
+            tbody.innerHTML += `<tr><td style="font-size:13px; color:#cbd5e1;">${item.Invoice_ID||'-'}</td><td>${b}</td><td style="font-weight:bold;">${Math.abs(amt).toLocaleString()} ฿</td></tr>`;
           }
         });
-        if (count === 0) { notify("ไม่พบประวัติชื่อนี้", false); document.getElementById("resultArea").style.display = "none"; } 
+        if(count===0){ notify("❌ ไม่พบข้อมูล", false); document.getElementById("resultArea").style.display="none"; }
         else {
           currentTotalPending = total;
-          document.getElementById("totalPendingBox").innerText = "ยอดค้างชำระ: " + total.toLocaleString() + " ฿";
+          document.getElementById("totalPendingBox").innerText = `ยอดค้างชำระ: ${total.toLocaleString()} บาท`;
           document.getElementById("resultArea").style.display = "block";
           document.getElementById("payCustomerName").value = document.getElementById("searchName").value;
         }
-      }).catch(() => notify("เชื่อมต่อขัดข้อง", false)).finally(hideLoader);
+      }).catch(()=>notify("❌ เชื่อมต่อล้มเหลว", false)).finally(()=>hideLoader());
     }
 
-    async function validateAndShowQr(customerName, amount) {
-      if (!customerName) return notify("กรุณากรอกชื่อลูกค้า", false);
-      if (!amount || amount <= 0) return notify("ยอดเงินต้องมากกว่า 0 บาท", false);
-      showLoader("กำลังสร้าง QR Code...");
-      
-      try {
-        const res = await fetch(WEB_APP_URL); const data = await res.json();
-        const cleanName = customerName.trim().toLowerCase();
-        if (!data.some(i => i.Customer_Name && i.Customer_Name.toString().toLowerCase() === cleanName)) {
-          hideLoader(); return notify(`ไม่พบชื่อ "${customerName}" ในระบบ`, false);
-        }
-        hideLoader();
-        document.getElementById("modalCustomerName").innerText = customerName;
-        document.getElementById("modalAmountDisplay").innerText = parseFloat(amount).toLocaleString(undefined, {minimumFractionDigits: 2});
-        
-        const container = document.getElementById("qrCodeContainer"); container.innerHTML = ""; 
-        new QRCode(container, { text: generatePromptPayPayload(PROMPTPAY_NUMBER, amount), width: 180, height: 180, colorDark: "#000", colorLight: "#fff", correctLevel: QRCode.CorrectLevel.M });
-        document.getElementById("qrModal").style.display = "flex";
-      } catch (e) { hideLoader(); notify("เชื่อมต่อฐานข้อมูลล้มเหลว", false); }
+    function showQrModal(cName, amt) {
+      if(!cName || amt<=0) return notify("⚠️ ข้อมูลไม่ครบหรือยอดเป็น 0", false);
+      document.getElementById("modalCustomerName").innerText = cName;
+      document.getElementById("modalAmountDisplay").innerText = parseFloat(amt).toLocaleString();
+      const cont = document.getElementById("qrCodeContainer"); cont.innerHTML = "";
+      new QRCode(cont, { text: generatePromptPayPayload(PROMPTPAY_NUMBER, amt), width: 220, height: 220, colorDark:"#000", colorLight:"#fff" });
+      document.getElementById("qrModal").style.display = "flex";
     }
 
-    function openQrModalFromTotal() { validateAndShowQr(document.getElementById("searchName").value, currentTotalPending); }
-    function openQrModalFromInput() { validateAndShowQr(document.getElementById("payCustomerName").value, parseFloat(document.getElementById("payAmount").value) || 0); }
-    function closeQrModal() { document.getElementById("qrModal").style.display = "none"; document.getElementById("modalSlipFile").value = ""; }
+    function openQrModalFromTotal() { showQrModal(document.getElementById("searchName").value, currentTotalPending); }
+    function openQrModalFromInput() { showQrModal(document.getElementById("payCustomerName").value, parseFloat(document.getElementById("payAmount").value)||0); }
+    function closeQrModal() { document.getElementById("qrModal").style.display = "none"; document.getElementById("modalSlipFile").value=""; }
 
     async function submitModalPayment() {
-      const name = document.getElementById("modalCustomerName").innerText;
-      const amt = parseFloat(document.getElementById("modalAmountDisplay").innerText.replace(/,/g, '')) || 0;
+      const cName = document.getElementById("modalCustomerName").innerText;
+      const amt = parseFloat(document.getElementById("modalAmountDisplay").innerText.replace(/,/g, ''))||0;
       const file = document.getElementById("modalSlipFile").files[0];
-
-      showLoader("กำลังส่งข้อมูลแจ้งชำระ...");
-      let slipBase64 = "", mimeType = "";
-      if (file) {
-        slipBase64 = await new Promise(r => { const reader = new FileReader(); reader.onloadend = () => r(reader.result); reader.readAsDataURL(file); });
-        mimeType = file.type;
+      showLoader();
+      let b64 = "", mime = "";
+      if(file) {
+        b64 = await new Promise(r => { const rd = new FileReader(); rd.onloadend = ()=>r(rd.result); rd.readAsDataURL(file); });
+        mime = file.type;
       }
-
-      fetch(WEB_APP_URL, {
-        method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ actionType: "update", customerName: name, amount: amt, slipBase64: slipBase64, mimeType: mimeType })
-      }).then(r => r.json()).then(data => {
-        if (data.status === "success") {
-          notify("แจ้งชำระเรียบร้อย รอแอดมินตรวจสอบ"); closeQrModal();
-          if (document.getElementById("searchName").value) checkBalance();
-        } else notify("เกิดข้อผิดพลาด: " + data.message, false);
-      }).catch(() => notify("ส่งข้อมูลไม่สำเร็จ", false)).finally(hideLoader);
+      fetch(WEB_APP_URL, { method:"POST", body:JSON.stringify({ actionType:"update", customerName:cName, amount:amt, slipBase64:b64, mimeType:mime }) })
+      .then(r=>r.json()).then(d=>{
+        if(d.status==="success"){ notify("✅ ส่งข้อมูลสำเร็จ"); closeQrModal(); if(document.getElementById("searchName").value) checkBalance(); }
+        else notify("❌ " + (d.message||"เกิดข้อผิดพลาด"), false);
+      }).catch(()=>notify("❌ ส่งข้อมูลไม่สำเร็จ", false)).finally(()=>hideLoader());
     }
   </script>
 </body>
