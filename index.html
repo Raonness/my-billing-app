@@ -92,19 +92,51 @@
       font-weight: 600;
       color: #fda4af;
       margin-top: 15px;
-      animation: pulse 2s infinite alternate;
     }
 
     /* Modal Login */
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 1000; }
     .modal-content { background: #1e293b; border: 1px solid var(--glass-border); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; animation: zoomIn 0.3s ease; }
 
+    /* Toast Notification (ระบบแสดงตัวดำเนินการ) */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      min-width: 250px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--glass-border);
+      color: white;
+      font-size: 14px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      backdrop-filter: blur(10px);
+      animation: slideInRight 0.4s ease-out;
+    }
+    .toast.success { border-left: 4px solid var(--accent-green); }
+    .toast.info { border-left: 4px solid var(--accent-cyan); }
+    .toast.warning { border-left: 4px solid var(--accent-red); }
+
     /* Animations */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    @keyframes slideInRight { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
   </style>
 </head>
 <body>
+
+  <!-- กล่องแสดงตัวดำเนินการแจ้งเตือนสถานะ -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <div class="container">
     
@@ -134,7 +166,6 @@
           </thead>
           <tbody id="resultTableBody"></tbody>
         </table>
-        <!-- สรุปยอดค้างชำระอัตโนมัติ -->
         <div class="summary-box" id="totalPendingBox">รวมยอดค้างชำระ: 0.00 บาท</div>
       </div>
     </div>
@@ -188,13 +219,33 @@
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
     let isAdminLoggedIn = false;
 
+    // ฟังก์ชันแสดงกล่องแจ้งเตือนตัวดำเนินการ (Toast Notification)
+    function notify(message, type = 'info') {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = `toast ${type}`;
+      
+      let icon = 'ℹ️';
+      if (type === 'success') icon = '✅';
+      if (type === 'warning') icon = '⚠️';
+
+      toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
     // ระบบ Log in Admin
     function toggleLoginModal() {
       if (isAdminLoggedIn) {
         isAdminLoggedIn = false;
         document.getElementById("adminPanel").style.display = "none";
         document.getElementById("loginToggleBtn").innerText = "🔒 เข้าสู่ระบบ Admin";
-        alert("ออกจากระบบเรียบร้อยแล้ว");
+        notify("ออกจากระบบ Admin เรียบร้อยแล้ว", "warning");
       } else {
         const modal = document.getElementById("loginModal");
         modal.style.display = modal.style.display === "flex" ? "none" : "flex";
@@ -212,18 +263,19 @@
         toggleLoginModal();
         document.getElementById("adminUser").value = "";
         document.getElementById("adminPass").value = "";
-        alert("เข้าสู่ระบบ Admin สำเร็จ!");
+        notify("เข้าสู่ระบบ Admin สำเร็จแล้ว!", "success");
       } else {
-        alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!");
+        notify("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!", "warning");
       }
     }
 
-    // ฟังก์ชันบันทึกข้อมูล ( Admin Only )
+    // ฟังก์ชันบันทึกข้อมูล
     document.getElementById("billingForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const btn = document.getElementById("submitBtn");
       btn.innerText = "กำลังบันทึกข้อมูล...";
       btn.disabled = true;
+      notify("กำลังส่งข้อมูลไปยัง Google Sheets...", "info");
 
       const payload = {
         customerName: document.getElementById("customerName").value,
@@ -238,10 +290,10 @@
         body: JSON.stringify(payload)
       })
       .then(() => {
-        alert("บันทึกข้อมูลสำเร็จ!");
+        notify("ยืนยันการบันทึกข้อมูลเรียบร้อยแล้ว!", "success");
         document.getElementById("billingForm").reset();
       })
-      .catch(err => alert("เกิดข้อผิดพลาด: " + err))
+      .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
       .finally(() => {
         btn.innerText = "บันทึกรายการลง Sheet";
         btn.disabled = false;
@@ -254,12 +306,13 @@
       const btn = document.getElementById("searchBtn");
       
       if (!searchName) {
-        alert("กรุณากรอกชื่อลูกค้าเพื่อค้นหาครับ");
+        notify("กรุณากรอกชื่อลูกค้าเพื่อค้นหา", "warning");
         return;
       }
 
       btn.innerText = "กำลังค้นหาข้อมูล...";
       btn.disabled = true;
+      notify("กำลังค้นหาข้อมูลยอดค้างชำระ...", "info");
 
       fetch(WEB_APP_URL)
         .then(res => res.json())
@@ -278,7 +331,6 @@
 
               if (isPending) totalPending += amountVal;
 
-              // ปุ่มเปลี่ยนสถานะ (จะแสดงก็ต่อเมื่อ Admin Logged in เท่านั้น)
               let statusBtnHTML = isPending 
                 ? `<button class="btn-status pending" ${isAdminLoggedIn ? `onclick="toggleStatus('${item.Invoice_ID}', 'Paid')"` : ''}>ยังไม่ชำระ</button>`
                 : `<button class="btn-status paid" ${isAdminLoggedIn ? `onclick="toggleStatus('${item.Invoice_ID}', 'Pending')"` : ''}>ชำระแล้ว</button>`;
@@ -293,24 +345,27 @@
           });
 
           if (matchCount === 0) {
-            alert("ไม่พบข้อมูลลูกค้ารายนี้");
+            notify("ไม่พบข้อมูลลูกค้ารายนี้ในระบบ", "warning");
             document.getElementById("resultArea").style.display = "none";
           } else {
+            notify(`ค้นพบข้อมูล ${matchCount} รายการ`, "success");
             document.getElementById("totalPendingBox").innerText = "ยอดค้างชำระรวมอัตโนมัติ: " + totalPending.toLocaleString() + " บาท";
             document.getElementById("resultArea").style.display = "block";
           }
         })
-        .catch(err => alert("เกิดข้อผิดพลาด: " + err))
+        .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
         .finally(() => {
           btn.innerText = "ค้นหายอดค้างชำระ";
           btn.disabled = false;
         });
     }
 
-    // ฟังก์ชันปรับสถานะการชำระเงิน (คลิกเพื่อสลับ Pending <-> Paid)
+    // ฟังก์ชันปรับสถานะการชำระเงิน
     function toggleStatus(invoiceId, newStatus) {
       if (!isAdminLoggedIn) return;
       if (!confirm("คุณต้องการเปลี่ยนสถานะรายการนี้ใช่หรือไม่?")) return;
+
+      notify("กำลังอัปเดตสถานะการชำระเงิน...", "info");
 
       fetch(WEB_APP_URL, {
         method: "POST",
@@ -322,10 +377,10 @@
         })
       })
       .then(() => {
-        alert("อัปเดตสถานะเรียบร้อยแล้ว!");
-        checkBalance(); // โหลดข้อมูลใหม่
+        notify("ยืนยันอัปเดตสถานะเรียบร้อยแล้ว!", "success");
+        checkBalance();
       })
-      .catch(err => alert("อัปเดตไม่สำเร็จ: " + err));
+      .catch(err => notify("อัปเดตไม่สำเร็จ: " + err, "warning"));
     }
   </script>
 </body>
