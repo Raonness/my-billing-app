@@ -3,448 +3,329 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billing System - Pro Design</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <title>เริ่มต้นเที่ยวหัวหินกับพวกเรา - Huahin Ocean Service</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
-      --glass-bg: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.12);
-      --accent-cyan: #38bdf8;
-      --accent-green: #22c55e;
-      --accent-red: #f43f5e;
-      --accent-purple: #a855f7;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --sea-deep: #0a2540; --sea-blue: #0077b6; --sea-cyan: #00b4d8;
+      --sea-foam: #90e0ef; --sand-gold: #f4a261; --glass-sea: rgba(10, 37, 64, 0.65);
+      --glass-border: rgba(144, 224, 239, 0.25); --text-light: #f8fafc;
     }
+    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.3s ease; }
+    body { background: var(--sea-deep); color: var(--text-light); min-height: 100vh; margin: 0; overflow-x: hidden; }
 
-    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-    body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; padding: 20px 10px; margin: 0; display: flex; flex-direction: column; align-items: center; }
-
-    /* Container & Cards */
-    .container { width: 100%; max-width: 650px; }
-    .card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 25px;
-      margin-bottom: 25px;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-      animation: fadeInUp 0.6s ease-out;
+    /* Loader Overlay */
+    .loader-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(10, 37, 64, 0.85); backdrop-filter: blur(6px);
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 999999; opacity: 0; pointer-events: none; transition: opacity 0.3s;
     }
-
-    /* Header Bar */
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .top-bar h1 { font-size: 22px; margin: 0; background: linear-gradient(to right, #38bdf8, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-    /* Form & Input Elements */
-    .form-group { margin-bottom: 18px; }
-    label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
-    input {
-      width: 100%;
-      padding: 12px 16px;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      color: white;
-      font-size: 15px;
-      outline: none;
+    .loader-overlay.active { opacity: 1; pointer-events: auto; }
+    .spinner {
+      width: 50px; height: 50px; border: 4px solid var(--glass-border);
+      border-top-color: var(--sea-cyan); border-radius: 50%;
+      animation: spin 1s linear infinite; margin-bottom: 15px;
     }
-    input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 12px rgba(56, 189, 248, 0.3); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader-text { color: var(--sea-foam); font-size: 16px; font-weight: 500; letter-spacing: 1px; }
 
-    /* Buttons */
-    .btn {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 12px;
-      font-weight: 500;
-      font-size: 15px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+    /* Welcome Page */
+    #welcomePage {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: linear-gradient(rgba(10,37,64,0.4), rgba(10,37,64,0.75)), 
+                  url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') center/cover;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      z-index: 9999; text-align: center; padding: 20px;
     }
-    .btn-primary { background: linear-gradient(135deg, #0284c7, #2563eb); color: white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6); }
-    .btn-admin { background: rgba(255, 255, 255, 0.1); color: var(--accent-cyan); width: auto; padding: 8px 16px; border: 1px solid var(--glass-border); }
-    .btn-admin:hover { background: rgba(56, 189, 248, 0.2); }
-    .btn-pay { background: rgba(56, 189, 248, 0.2); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); padding: 4px 10px; font-size: 12px; border-radius: 8px; cursor: pointer; }
-    .btn-pay:hover { background: var(--accent-cyan); color: #0f172a; }
-    .btn-status { padding: 4px 12px; font-size: 12px; border-radius: 20px; border: none; cursor: pointer; }
-    .btn-status.pending { background: rgba(244, 63, 94, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
-    .btn-status.paid { background: rgba(34, 197, 94, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
-
-    /* Table Design */
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-    th { text-align: left; padding: 12px 8px; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
-    td { padding: 12px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); vertical-align: middle; }
-
-    /* Dashboard Summary Box */
-    .summary-box {
-      background: linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(168, 85, 247, 0.15));
-      border: 1px solid rgba(244, 63, 94, 0.3);
-      padding: 15px;
-      border-radius: 14px;
-      text-align: right;
-      font-size: 18px;
-      font-weight: 600;
-      color: #fda4af;
-      margin-top: 15px;
+    .hero-title {
+      font-size: 3.2rem; font-weight: 700; margin-bottom: 10px;
+      text-shadow: 0 4px 20px rgba(0, 180, 216, 0.8);
+      background: linear-gradient(to right, #ffffff, var(--sea-foam));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-
-    /* Modal Windows (Login & Pay Modal) */
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { background: #1e293b; border: 1px solid var(--glass-border); padding: 30px; border-radius: 20px; width: 90%; max-width: 420px; animation: zoomIn 0.3s ease; text-align: center; }
-
-    /* QR Code Container Styling */
-    .qr-box {
-      background: #ffffff;
-      padding: 15px;
-      border-radius: 16px;
-      display: inline-block;
-      margin: 15px 0;
+    .hero-subtitle { font-size: 1.25rem; color: var(--sea-foam); margin-bottom: 35px; }
+    .btn-start {
+      padding: 16px 48px; font-size: 1.2rem; font-weight: 600; color: #0a2540;
+      background: linear-gradient(135deg, var(--sea-foam), var(--sea-cyan));
+      border: none; border-radius: 50px; cursor: pointer;
+      box-shadow: 0 0 25px rgba(0, 180, 216, 0.6); animation: pulse 2s infinite;
     }
-    .qr-box img { width: 200px; height: 200px; display: block; }
-
-    /* Toast Notification */
-    .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .toast {
-      min-width: 250px;
-      padding: 14px 20px;
-      border-radius: 12px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid var(--glass-border);
-      color: white;
-      font-size: 14px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      backdrop-filter: blur(10px);
-      animation: slideInRight 0.4s ease-out;
-    }
-    .toast.success { border-left: 4px solid var(--accent-green); }
-    .toast.info { border-left: 4px solid var(--accent-cyan); }
-    .toast.warning { border-left: 4px solid var(--accent-red); }
+    .btn-start:hover { transform: scale(1.08); box-shadow: 0 0 35px rgba(144, 224, 239, 0.9); }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
     /* Animations */
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-    @keyframes slideInRight { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+    .ocean-curtain {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(180deg, var(--sea-cyan), var(--sea-deep));
+      z-index: 10000; pointer-events: none; opacity: 0; transform: translateY(100%);
+      transition: transform 0.9s cubic-bezier(0.77, 0, 0.175, 1);
+    }
+    .ocean-curtain.active { transform: translateY(0%); opacity: 1; }
+
+    /* Main Content */
+    #mainContent {
+      display: none; opacity: 0; transition: opacity 0.8s ease; min-height: 100vh; padding: 30px 15px;
+      background: linear-gradient(180deg, rgba(10,37,64,0.85) 0%, rgba(0,119,182,0.65) 100%),
+                  url('https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1920&q=80') center/cover fixed;
+    }
+    .container { max-width: 720px; margin: 0 auto; }
+    .card {
+      background: var(--glass-sea); backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border); border-radius: 24px; padding: 28px; margin-bottom: 25px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .top-bar h1 { font-size: 22px; margin: 0; color: var(--sea-foam); }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--sea-foam); }
+    input {
+      width: 100%; padding: 12px 16px; background: rgba(10, 37, 64, 0.75);
+      border: 1px solid var(--glass-border); border-radius: 12px; color: white; font-size: 15px; outline: none;
+    }
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: linear-gradient(135deg, var(--sea-cyan), var(--sea-blue)); color: white; }
+    .btn-success { background: linear-gradient(135deg, #22c55e, #059669); color: white; margin-top: 10px; }
+    .btn-qr { background: linear-gradient(135deg, #a855f7, #6366f1); color: white; margin-top: 10px; }
+    .btn-admin-link { background: rgba(255,255,255,0.1); color: var(--sea-foam); text-decoration: none; padding: 8px 14px; border-radius: 10px; font-size: 12px; border: 1px solid var(--glass-border); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+    th { text-align: left; padding: 10px 8px; color: var(--sea-foam); border-bottom: 1px solid var(--glass-border); }
+    td { padding: 12px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+    .summary-box {
+      background: rgba(244, 162, 97, 0.15); border: 1px solid rgba(244, 162, 97, 0.4);
+      padding: 16px; border-radius: 14px; text-align: right; font-size: 18px; font-weight: 600; color: var(--sand-gold); margin-top: 15px;
+    }
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999999; }
+    .toast { padding: 14px 20px; border-radius: 12px; background: rgba(10, 37, 64, 0.95); border: 1px solid var(--glass-border); color: white; font-size: 14px; margin-bottom: 10px; }
+
+    /* Modal คิวอาร์โค้ด */
+    .modal {
+      display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 99999;
+    }
+    .modal-content {
+      background: var(--sea-deep); border: 1px solid var(--glass-border);
+      padding: 25px; border-radius: 20px; width: 90%; max-width: 380px; text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .qr-box {
+      background: white; padding: 12px; border-radius: 16px; display: inline-block; margin: 15px 0;
+    }
+    .qr-box img { width: 200px; height: 200px; display: block; }
   </style>
 </head>
 <body>
 
-  <!-- กล่องแสดงตัวดำเนินการแจ้งเตือนสถานะ -->
+  <!-- Loading Overlay -->
+  <div class="loader-overlay" id="globalLoader">
+    <div class="spinner"></div>
+    <div class="loader-text" id="loaderText">กำลังโหลด...</div>
+  </div>
+
+  <div class="ocean-curtain" id="oceanCurtain"></div>
   <div class="toast-container" id="toastContainer"></div>
 
-  <div class="container">
-    
-    <!-- Header & Admin Login Button -->
-    <div class="top-bar">
-      <h1>⚡ Billing Dashboard</h1>
-      <button class="btn btn-admin" id="loginToggleBtn" onclick="toggleLoginModal()">🔒 เข้าสู่ระบบ Admin</button>
-    </div>
-
-    <!-- ส่วนที่ 1: ตรวจสอบยอดค้างชำระ (สำหรับทุกคน) -->
-    <div class="card">
-      <h2 style="margin-top:0; font-size: 18px; color: var(--accent-cyan);">🔍 ตรวจสอบยอดค้างชำระ</h2>
-      <div class="form-group">
-        <label>กรอกชื่อลูกค้าของคุณเพื่อค้นหา:</label>
-        <input type="text" id="searchName" placeholder="เช่น นายสมชาย หรือ บริษัท ABC...">
-      </div>
-      <button class="btn btn-primary" id="searchBtn" onclick="checkBalance()">ค้นหายอดค้างชำระ</button>
-
-      <div id="resultArea" style="display:none;">
-        <table>
-          <thead>
-            <tr>
-              <th>รายการ</th>
-              <th>ยอดสุทธิ</th>
-              <th>สถานะ</th>
-              <th>ชำระเงิน</th>
-            </tr>
-          </thead>
-          <tbody id="resultTableBody"></tbody>
-        </table>
-        <div class="summary-box" id="totalPendingBox">รวมยอดค้างชำระ: 0.00 บาท</div>
-      </div>
-    </div>
-
-    <!-- ส่วนที่ 2: ฟอร์มบันทึกข้อมูล (เฉพาะ Admin เท่านั้น) -->
-    <div class="card" id="adminPanel" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h2 style="margin:0; font-size: 18px; color: var(--accent-purple);">📝 บันทึกการเรียกเก็บเงิน (Admin Mode)</h2>
-        <span style="font-size: 12px; color: var(--accent-green); background: rgba(34, 197, 94, 0.2); padding: 4px 8px; border-radius: 8px;">● Logged in</span>
-      </div>
-      
-      <form id="billingForm">
-        <div class="form-group">
-          <label>ชื่อลูกค้า:</label>
-          <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า" required>
-        </div>
-        <div class="form-group">
-          <label>จำนวนเงิน (บาท):</label>
-          <input type="number" id="amount" placeholder="0.00" step="0.01" required>
-        </div>
-        <div class="form-group">
-          <label>ยอดรวมสุทธิ (Total Amount):</label>
-          <input type="number" id="totalAmount" placeholder="0.00" step="0.01" required>
-        </div>
-        <button type="submit" class="btn btn-primary" id="submitBtn" style="background: linear-gradient(135deg, #a855f7, #6366f1);">บันทึกรายการลง Sheet</button>
-      </form>
-    </div>
-
+  <!-- Landing Page -->
+  <div id="welcomePage">
+    <h1 class="hero-title">หัวหินกับพวกเรา 🌊</h1>
+    <p class="hero-subtitle">สัมผัสประสบการณ์สุดพิเศษ และจัดการข้อมูลบริการได้อย่างง่ายดาย</p>
+    <button class="btn-start" onclick="startExperience()">เริ่มกันเลย</button>
   </div>
 
-  <!-- Modal สำหรับ Log in Admin -->
-  <div class="modal" id="loginModal">
-    <div class="modal-content" style="text-align: left;">
-      <h2 style="margin-top:0; text-align: center; color: var(--accent-cyan);">🔐 เข้าสู่ระบบ Admin</h2>
-      <form onsubmit="handleLogin(event)">
+  <!-- Main Content -->
+  <div id="mainContent">
+    <div class="container">
+      <div class="top-bar">
+        <h1>🏖️ สรุปยอดบริการหัวหิน</h1>
+        <a href="payment.html" class="btn-admin-link">🔒 สำหรับผู้ดูแลระบบ</a>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0; font-size: 18px; color: var(--sea-cyan);">🔍 ตรวจสอบยอดและประวัติทำรายการ</h2>
         <div class="form-group">
-          <label>ชื่อผู้ใช้งาน (Username):</label>
-          <input type="text" id="adminUser" placeholder="Username" required>
+          <label>ระบุชื่อของคุณเพื่อค้นหา:</label>
+          <input type="text" id="searchName" placeholder="พิมพ์ชื่อลูกค้าระบบ...">
         </div>
-        <div class="form-group">
-          <label>รหัสผ่าน (Password):</label>
-          <input type="password" id="adminPass" placeholder="Password" required>
+        <button class="btn btn-primary" onclick="checkBalance()">ค้นหาข้อมูล</button>
+
+        <div id="resultArea" style="display:none;">
+          <h3 style="font-size: 14px; color: var(--sea-foam); margin-top: 20px;">ประวัติรายการทั้งหมด (ล่าสุดอยู่บน)</h3>
+          <table>
+            <thead><tr><th>รายการ</th><th>เวลา</th><th>สถานะ</th><th>จำนวนเงิน</th></tr></thead>
+            <tbody id="resultTableBody"></tbody>
+          </table>
+          <div class="summary-box" id="totalPendingBox">ยอดค้างชำระคงเหลือ: 0.00 บาท</div>
+          
+          <!-- ปุ่มสร้าง คิวอาร์โค้ด สแกนจ่ายจากยอดรวม -->
+          <button class="btn btn-qr" onclick="openQrModalFromTotal()">📱 สแกนจ่าย PromptPay QR จากยอดคงเหลือ</button>
         </div>
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
-          <button type="button" class="btn" style="background: transparent; color: var(--text-muted);" onclick="toggleLoginModal()">ยกเลิก</button>
-        </div>
-      </form>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0; font-size: 18px; color: #86efac;">💳 แจ้งชำระเงินออนไลน์</h2>
+        <form id="clientPaymentForm">
+          <div class="form-group">
+            <label>ชื่อลูกค้า (ให้ตรงกับระบบ):</label>
+            <input type="text" id="payCustomerName" placeholder="ระบุชื่อของคุณ" required>
+          </div>
+          <div class="form-group">
+            <label>จำนวนเงินที่โอนชำระ (บาท):</label>
+            <input type="number" id="payAmount" placeholder="0.00" step="0.01" required>
+          </div>
+          <button type="button" class="btn btn-qr" style="margin-top: 0; margin-bottom: 10px;" onclick="openQrModalFromInput()">📱 เปิดสแกน QR Code ตามยอดเงินนี้</button>
+          <button type="submit" class="btn btn-success">ส่งข้อมูลชำระเงิน</button>
+        </form>
+      </div>
     </div>
   </div>
 
-  <!-- Modal แสดง QR Code ชำระเงินผ่าน PromptPay -->
-  <div class="modal" id="payModal">
+  <!-- Modal ป๊อปอัป คิวอาร์โค้ด -->
+  <div class="modal" id="qrModal">
     <div class="modal-content">
-      <h3 style="margin-top:0; color: var(--accent-cyan); font-size: 20px;">📱 ชำระเงินด้วย PromptPay</h3>
-      <p style="margin: 5px 0; color: var(--text-muted); font-size: 14px;">รายการของ: <b id="payCustomerName" style="color: white;">-</b></p>
+      <h3 style="margin-top:0; color: var(--sea-foam); font-size: 18px;">📱 สแกนจ่ายผ่าน PromptPay</h3>
+      <p style="margin: 5px 0; font-size: 13px; color: #cbd5e1;">ชื่อลูกค้า: <b id="modalCustomerName" style="color:white;">-</b></p>
       
       <div class="qr-box">
-        <img id="modalQrImg" src="" alt="PromptPay QR Code">
+        <img id="qrImage" src="" alt="PromptPay QR Code">
       </div>
 
-      <div style="font-size: 20px; font-weight: 600; color: var(--accent-green); margin-bottom: 15px;">
-        ยอดชำระ: <span id="payAmountDisplay">0.00</span> บาท
+      <div style="font-size: 20px; font-weight: 600; color: #86efac; margin-bottom: 15px;">
+        ยอดชำระ: <span id="modalAmountDisplay">0.00</span> บาท
       </div>
 
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">
-        เปิดแอปพลิเคชันธนาคารของคุณ แล้วสแกนคิวอาร์โค้ดนี้เพื่อชำระเงิน
-      </p>
-
-      <button class="btn" style="background: rgba(255, 255, 255, 0.1); color: white;" onclick="closePayModal()">ปิดหน้าต่าง</button>
+      <button class="btn" style="background: rgba(255, 255, 255, 0.15); color: white;" onclick="closeQrModal()">ปิดหน้าต่าง</button>
     </div>
   </div>
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
-    const PROMPTPAY_NUMBER = "0812345678"; // ⚠️ เปลี่ยนเป็นเบอร์พร้อมเพย์ หรือ เลขผู้เสียภาษีของคุณ
-    let isAdminLoggedIn = false;
+    const PROMPTPAY_NUMBER = "0812345678"; // ⚠️ กรุณาเปลี่ยนเป็นเบอร์พร้อมเพย์ หรือเลขประจำตัวผู้เสียภาษีของคุณ
+    let currentTotalPending = 0;
 
-    // ฟังก์ชันแสดงกล่องแจ้งเตือนตัวดำเนินการ (Toast Notification)
-    function notify(message, type = 'info') {
-      const container = document.getElementById("toastContainer");
-      const toast = document.createElement("div");
-      toast.className = `toast ${type}`;
-      
-      let icon = 'ℹ️';
-      if (type === 'success') icon = '✅';
-      if (type === 'warning') icon = '⚠️';
+    function showLoader(text = "กำลังโหลด...") {
+      document.getElementById("loaderText").innerText = text;
+      document.getElementById("globalLoader").classList.add("active");
+    }
+    function hideLoader() { document.getElementById("globalLoader").classList.remove("active"); }
 
-      toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
-      container.appendChild(toast);
-
+    function startExperience() {
+      const curtain = document.getElementById("oceanCurtain");
+      curtain.classList.add("active");
       setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100px)';
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
+        document.getElementById("welcomePage").style.display = "none";
+        const main = document.getElementById("mainContent");
+        main.style.display = "block";
+        setTimeout(() => { main.style.opacity = "1"; }, 50);
+      }, 700);
+      setTimeout(() => { curtain.classList.remove("active"); }, 1200);
     }
 
-    // ระบบ Log in Admin
-    function toggleLoginModal() {
-      if (isAdminLoggedIn) {
-        isAdminLoggedIn = false;
-        document.getElementById("adminPanel").style.display = "none";
-        document.getElementById("loginToggleBtn").innerText = "🔒 เข้าสู่ระบบ Admin";
-        notify("ออกจากระบบ Admin เรียบร้อยแล้ว", "warning");
-      } else {
-        const modal = document.getElementById("loginModal");
-        modal.style.display = modal.style.display === "flex" ? "none" : "flex";
-      }
+    function notify(msg, ok = true) {
+      const c = document.getElementById("toastContainer");
+      const t = document.createElement("div"); t.className = "toast";
+      t.style.borderLeft = ok ? "4px solid #22c55e" : "4px solid #f43f5e";
+      t.innerHTML = `${ok ? '✅' : '⚠️'} ${msg}`;
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
     }
 
-    function handleLogin(e) {
-      if (e) e.preventDefault(); // ป้องกันการ Refresh หน้าเว็บ
-
-      const u = document.getElementById("adminUser").value.trim();
-      const p = document.getElementById("adminPass").value.trim();
-
-      if (u === "Admin" && p === "Admin1123") {
-        isAdminLoggedIn = true;
-        document.getElementById("adminPanel").style.display = "block";
-        document.getElementById("loginToggleBtn").innerText = "🔓 ออกจากระบบ Admin";
-        
-        document.getElementById("loginModal").style.display = "none";
-        document.getElementById("adminUser").value = "";
-        document.getElementById("adminPass").value = "";
-        
-        notify("เข้าสู่ระบบ Admin สำเร็จแล้ว!", "success");
-      } else {
-        notify("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!", "warning");
-      }
-    }
-
-    // ฟังก์ชันบันทึกข้อมูล
-    document.getElementById("billingForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const btn = document.getElementById("submitBtn");
-      btn.innerText = "กำลังบันทึกข้อมูล...";
-      btn.disabled = true;
-      notify("กำลังส่งข้อมูลไปยัง Google Sheets...", "info");
-
-      const payload = {
-        customerName: document.getElementById("customerName").value,
-        amount: document.getElementById("amount").value,
-        totalAmount: document.getElementById("totalAmount").value,
-        status: "Pending"
-      };
-
-      fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      })
-      .then(() => {
-        notify("ยืนยันการบันทึกข้อมูลเรียบร้อยแล้ว!", "success");
-        document.getElementById("billingForm").reset();
-      })
-      .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
-      .finally(() => {
-        btn.innerText = "บันทึกรายการลง Sheet";
-        btn.disabled = false;
-      });
-    });
-
-    // ค้นหา และ คำนวณสรุปยอดค้างชำระอัตโนมัติ
     function checkBalance() {
-      const searchName = document.getElementById("searchName").value.trim().toLowerCase();
-      const btn = document.getElementById("searchBtn");
-      
-      if (!searchName) {
-        notify("กรุณากรอกชื่อลูกค้าเพื่อค้นหา", "warning");
-        return;
-      }
-
-      btn.innerText = "กำลังค้นหาข้อมูล...";
-      btn.disabled = true;
-      notify("กำลังค้นหาข้อมูลยอดค้างชำระ...", "info");
+      const name = document.getElementById("searchName").value.trim().toLowerCase();
+      if (!name) return notify("กรุณากรอกชื่อเพื่อค้นหา", false);
+      showLoader("กำลังค้นหาข้อมูล...");
 
       fetch(WEB_APP_URL)
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => {
-          const tableBody = document.getElementById("resultTableBody");
-          tableBody.innerHTML = "";
-          let totalPending = 0;
-          let matchCount = 0;
+          const tbody = document.getElementById("resultTableBody"); tbody.innerHTML = "";
+          let total = 0, count = 0;
 
           data.forEach(item => {
-            if (item.Customer_Name && item.Customer_Name.toString().toLowerCase().includes(searchName)) {
-              matchCount++;
-              const row = document.createElement("tr");
-              const amountVal = parseFloat(item.Total_Amount) || 0;
-              const isPending = item.Status === "Pending";
+            if (item.Customer_Name && item.Customer_Name.toString().toLowerCase().includes(name)) {
+              count++;
+              const amt = parseFloat(item.Amount) || 0;
+              const status = item.Status || "";
+              const isPending = (status === "Pending Verification");
 
-              if (isPending) totalPending += amountVal;
+              if (!isPending && status !== "Rejected") total += amt;
+              const timeStr = item.Timestamp ? new Date(item.Timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
 
-              let statusBtnHTML = isPending 
-                ? `<button class="btn-status pending" ${isAdminLoggedIn ? `onclick="toggleStatus('${item.Invoice_ID}', 'Paid')"` : ''}>ยังไม่ชำระ</button>`
-                : `<button class="btn-status paid" ${isAdminLoggedIn ? `onclick="toggleStatus('${item.Invoice_ID}', 'Pending')"` : ''}>ชำระแล้ว</button>`;
+              let badge = `<span style="color:#f59e0b;">⏳ รออนุมัติ</span>`;
+              if (status === "Rejected") badge = `<span style="color:#f43f5e;">❌ ปฏิเสธ</span>`;
+              else if (amt < 0) badge = `<span style="color:#22c55e;">✅ ชำระแล้ว</span>`;
+              else if (!isPending) badge = `<span style="color:#38bdf8;">📌 ตั้งหนี้</span>`;
 
-              let payBtnHTML = isPending
-                ? `<button class="btn-pay" onclick="openPayModal('${item.Customer_Name}', ${amountVal})">📲 จ่ายเงิน</button>`
-                : `<span style="color:var(--text-muted); font-size:12px;">-</span>`;
-
-              row.innerHTML = `
-                <td>${item.Customer_Name}</td>
-                <td>${amountVal.toLocaleString()} ฿</td>
-                <td>${statusBtnHTML}</td>
-                <td>${payBtnHTML}</td>
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td style="font-size:12px; color:var(--sea-foam);">${item.Invoice_ID || '-'}</td>
+                <td style="font-size:11px; color:#cbd5e1;">${timeStr}</td>
+                <td>${badge}</td>
+                <td style="font-weight:600; color:${amt < 0 ? '#86efac' : '#fca5a5'};">${amt < 0 ? '-' : '+'}${Math.abs(amt).toLocaleString()} ฿</td>
               `;
-              tableBody.appendChild(row);
+              tbody.appendChild(tr);
             }
           });
 
-          if (matchCount === 0) {
-            notify("ไม่พบข้อมูลลูกค้ารายนี้ในระบบ", "warning");
-            document.getElementById("resultArea").style.display = "none";
+          if (count === 0) {
+            notify("ไม่พบประวัติชื่อนี้ในระบบ", false); document.getElementById("resultArea").style.display = "none";
           } else {
-            notify(`ค้นพบข้อมูล ${matchCount} รายการ`, "success");
-            document.getElementById("totalPendingBox").innerText = "ยอดค้างชำระรวมอัตโนมัติ: " + totalPending.toLocaleString() + " บาท";
+            currentTotalPending = total;
+            document.getElementById("totalPendingBox").innerText = "ยอดค้างชำระคงเหลือ: " + total.toLocaleString() + " บาท";
             document.getElementById("resultArea").style.display = "block";
+            document.getElementById("payCustomerName").value = document.getElementById("searchName").value;
           }
         })
-        .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
-        .finally(() => {
-          btn.innerText = "ค้นหายอดค้างชำระ";
-          btn.disabled = false;
-        });
+        .catch(() => notify("เกิดข้อผิดพลาดในการเชื่อมต่อ", false))
+        .finally(() => hideLoader());
     }
 
-    // ฟังก์ชันปรับสถานะการชำระเงิน
-    function toggleStatus(invoiceId, newStatus) {
-      if (!isAdminLoggedIn) return;
-      if (!confirm("คุณต้องการเปลี่ยนสถานะรายการนี้ใช่หรือไม่?")) return;
+    // ฟังก์ชันเปิด QR Modal
+    function showQrModal(customerName, amount) {
+      if (!amount || amount <= 0) {
+        notify("ยอดเงินต้องมากกว่า 0 บาทเพื่อสร้าง QR Code", false);
+        return;
+      }
+      document.getElementById("modalCustomerName").innerText = customerName || "ไม่ระบุชื่อ";
+      document.getElementById("modalAmountDisplay").innerText = parseFloat(amount).toLocaleString(undefined, {minimumFractionDigits: 2});
+      
+      // ดึง QR Code ผ่าน PromptPay API (PromptPay.io)
+      const qrApiUrl = `https://promptpay.io/${PROMPTPAY_NUMBER}/${amount}.png`;
+      document.getElementById("qrImage").src = qrApiUrl;
+      document.getElementById("qrModal").style.display = "flex";
+    }
 
-      notify("กำลังอัปเดตสถานะการชำระเงิน...", "info");
+    function openQrModalFromTotal() {
+      const name = document.getElementById("searchName").value.trim();
+      showQrModal(name, currentTotalPending);
+    }
+
+    function openQrModalFromInput() {
+      const name = document.getElementById("payCustomerName").value.trim();
+      const amount = parseFloat(document.getElementById("payAmount").value) || 0;
+      showQrModal(name, amount);
+    }
+
+    function closeQrModal() {
+      document.getElementById("qrModal").style.display = "none";
+    }
+
+    document.getElementById("clientPaymentForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      showLoader("กำลังส่งข้อมูลชำระเงิน...");
 
       fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          action: "updateStatus",
-          invoiceId: invoiceId,
-          newStatus: newStatus
-        })
+        method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ actionType: "update", customerName: document.getElementById("payCustomerName").value.trim(), amount: parseFloat(document.getElementById("payAmount").value) || 0 })
       })
       .then(() => {
-        notify("ยืนยันอัปเดตสถานะเรียบร้อยแล้ว!", "success");
-        checkBalance();
+        notify("แจ้งชำระเงินเรียบร้อยแล้ว! (รอการตรวจสอบ)");
+        document.getElementById("clientPaymentForm").reset();
+        if (document.getElementById("searchName").value.trim()) checkBalance();
       })
-      .catch(err => notify("อัปเดตไม่สำเร็จ: " + err, "warning"));
-    }
-
-    // ฟังก์ชันเปิด/ปิด Modal PromptPay QR Code
-    function openPayModal(customerName, amount) {
-      document.getElementById("payCustomerName").innerText = customerName;
-      document.getElementById("payAmountDisplay").innerText = amount.toLocaleString(undefined, {minimumFractionDigits: 2});
-      
-      // ดึงคิวอาร์โค้ดจาก PromptPay API Generator
-      const qrUrl = `https://promptpay.io/${PROMPTPAY_NUMBER}/${amount}.png`;
-      document.getElementById("modalQrImg").src = qrUrl;
-
-      document.getElementById("payModal").style.display = "flex";
-    }
-
-    function closePayModal() {
-      document.getElementById("payModal").style.display = "none";
-    }
+      .catch(() => notify("ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่", false))
+      .finally(() => hideLoader());
+    });
   </script>
 </body>
 </html>
