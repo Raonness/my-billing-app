@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Billing System - Admin Bulk Add</title>
+  <title>Billing System - Transaction History Mode</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -22,7 +22,7 @@
     * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
     body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; padding: 20px 10px; margin: 0; display: flex; flex-direction: column; align-items: center; }
 
-    .container { width: 100%; max-width: 700px; }
+    .container { width: 100%; max-width: 750px; }
     .card {
       background: var(--glass-bg);
       backdrop-filter: blur(16px);
@@ -113,70 +113,60 @@
 
     <!-- ค้นหาข้อมูล -->
     <div class="card">
-      <h2 style="margin-top:0; font-size: 18px; color: var(--accent-cyan);">🔍 ตรวจสอบยอดค้างชำระ</h2>
+      <h2 style="margin-top:0; font-size: 18px; color: var(--accent-cyan);">🔍 ค้นหาประวัติและสรุปยอดค้างชำระ</h2>
       <div class="form-group">
         <label>กรอกชื่อลูกค้าเพื่อค้นหา:</label>
         <input type="text" id="searchName" placeholder="เช่น นายสมชาย หรือ บริษัท ABC...">
       </div>
-      <button class="btn btn-primary" id="searchBtn" onclick="checkBalance()">ค้นหายอดค้างชำระ</button>
+      <button class="btn btn-primary" id="searchBtn" onclick="checkBalance()">ค้นหาข้อมูล</button>
 
       <div id="resultArea" style="display:none;">
+        <h3 style="font-size: 15px; color: var(--accent-purple); margin-top: 20px;">ประวัติธุรกรรมทั้งหมด</h3>
         <table>
           <thead>
             <tr>
-              <th>Invoice ID</th>
-              <th>ชื่อลูกค้า</th>
-              <th>ยอดรวมสุทธิ</th>
-              <th>ยอดค้างชำระ</th>
+              <th>รายการ</th>
+              <th>ประเภท</th>
+              <th>จำนวนเงิน</th>
             </tr>
           </thead>
           <tbody id="resultTableBody"></tbody>
         </table>
-        <div class="summary-box" id="totalPendingBox">รวมยอดค้างชำระทั้งหมด: 0.00 บาท</div>
+        <div class="summary-box" id="totalPendingBox">สรุปยอดค้างชำระสุทธิ: 0.00 บาท</div>
       </div>
     </div>
 
     <!-- Admin Panel -->
     <div class="card" id="adminPanel" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h2 style="margin:0; font-size: 18px; color: var(--accent-purple);">📝 ระบบจัดการข้อมูล (Admin Mode)</h2>
+        <h2 style="margin:0; font-size: 18px; color: var(--accent-purple);">📝 บันทึกธุรกรรม (Admin Mode)</h2>
         <span style="font-size: 12px; color: var(--accent-green); background: rgba(34, 197, 94, 0.2); padding: 4px 8px; border-radius: 8px;">● Logged in</span>
       </div>
 
-      <!-- ปุ่มพิเศษ +10 ทุกคน สำหรับผู้ดูแล -->
-      <button class="btn btn-bulk" id="bulkBtn" onclick="bulkAdd10()">⚡ ➕ บวกยอดค้างชำระ +10 ให้ทุกคนในระบบ</button>
+      <!-- ปุ่ม +10 ทุกคน -->
+      <button class="btn btn-bulk" id="bulkBtn" onclick="bulkAdd10()">⚡ ➕ เพิ่มรายการตั้งหนี้ +10 ให้ทุกคน</button>
 
       <form id="billingForm">
         <div class="form-group">
-          <label style="color: var(--accent-cyan); font-weight: 600;">เลือกการดำเนินการ:</label>
+          <label style="color: var(--accent-cyan); font-weight: 600;">ประเภทธุรกรรม:</label>
           <select id="actionType" onchange="handleActionTypeChange()">
-            <option value="add">🟢 เพิ่มรายการใหม่ (ระบุยอดค้างชำระ)</option>
-            <option value="update">🔵 อัปเดตการชำระเงิน (ลดยอดค้างชำระ)</option>
-            <option value="deduct">🔴 เพิ่มยอดค้างชำระเฉพาะราย (Add Pending)</option>
+            <option value="add">🟢 เพิ่มรายการตั้งหนี้ใหม่ (Initial / Charge)</option>
+            <option value="update">🔵 รับชำระเงิน (Payment - ลดยอดค้าง)</option>
+            <option value="deduct">🔴 บันทึกยอดค้างเพิ่มเฉพาะราย (Additional Charge)</option>
           </select>
         </div>
 
-        <div class="form-group" id="invoiceIdGroup" style="display: none;">
-          <label>ระบุ Invoice ID:</label>
-          <input type="text" id="invoiceId" placeholder="เช่น INV-1700000000000">
-        </div>
-
-        <div class="form-group" id="customerNameGroup">
+        <div class="form-group">
           <label>ชื่อลูกค้า:</label>
-          <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า">
-        </div>
-
-        <div class="form-group" id="totalAmountGroup">
-          <label>ยอดรวมสุทธิ (Total Amount):</label>
-          <input type="number" id="totalAmount" placeholder="0.00" step="0.01">
+          <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า" required>
         </div>
 
         <div class="form-group">
-          <label id="amountLabel">ยอดเงินค้างชำระ (Pending Amount):</label>
-          <input type="number" id="amount" placeholder="0.00" step="0.01">
+          <label id="amountLabel">จำนวนเงิน (บาท):</label>
+          <input type="number" id="amount" placeholder="0.00" step="0.01" required>
         </div>
 
-        <button type="submit" class="btn btn-primary" id="submitBtn" style="background: linear-gradient(135deg, #a855f7, #6366f1);">บันทึกข้อมูล</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn" style="background: linear-gradient(135deg, #a855f7, #6366f1);">บันทึกรายการใหม่</button>
       </form>
     </div>
 
@@ -251,14 +241,13 @@
       }
     }
 
-    // ฟังก์ชันยิงคำสั่งบวกยอดค้างชำระ +10 บาทให้ทุกคน
     function bulkAdd10() {
-      if (!confirm("⚠️ ยืนยันการเพิ่มยอดค้างชำระ +10 บาทให้กับทุกรายการในระบบใช่หรือไม่?")) return;
+      if (!confirm("⚠️ ยืนยันการบันทึกรายการเพิ่มหนี้ +10 บาทให้กับลูกค้าทุกคนใช่หรือไม่?")) return;
 
       const bulkBtn = document.getElementById("bulkBtn");
-      bulkBtn.innerText = "⏳ กำลังบวกยอด +10 ให้ทุกคน...";
+      bulkBtn.innerText = "⏳ กำลังบันทึกรายการ +10 ให้ทุกคน...";
       bulkBtn.disabled = true;
-      notify("กำลังดำเนินการบวกยอด +10 ให้ทุกคน...", "info");
+      notify("กำลังส่งข้อมูล...", "info");
 
       fetch(WEB_APP_URL, {
         method: "POST",
@@ -266,60 +255,44 @@
         body: JSON.stringify({ actionType: "bulkAdd10" })
       })
       .then(res => res.json())
-      .then(resData => {
-        notify("เพิ่มยอดค้างชำระ +10 ให้ทุกคนเรียบร้อยแล้ว!", "success");
+      .then(() => {
+        notify("บันทึกรายการ +10 ให้ทุกคนเรียบร้อยแล้ว!", "success");
         if (document.getElementById("searchName").value.trim()) {
-          checkBalance(); // อัปเดตตารางค้นหาทันทีหากเปิดอยู่อื่น
+          checkBalance();
         }
       })
       .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
       .finally(() => {
-        bulkBtn.innerText = "⚡ ➕ บวกยอดค้างชำระ +10 ให้ทุกคนในระบบ";
+        bulkBtn.innerText = "⚡ ➕ เพิ่มรายการตั้งหนี้ +10 ให้ทุกคน";
         bulkBtn.disabled = false;
       });
     }
 
     function handleActionTypeChange() {
       const type = document.getElementById("actionType").value;
-      const invoiceIdGroup = document.getElementById("invoiceIdGroup");
-      const customerNameGroup = document.getElementById("customerNameGroup");
-      const totalAmountGroup = document.getElementById("totalAmountGroup");
       const amountLabel = document.getElementById("amountLabel");
 
       if (type === "add") {
-        invoiceIdGroup.style.display = "none";
-        customerNameGroup.style.display = "block";
-        totalAmountGroup.style.display = "block";
-        amountLabel.innerText = "ยอดเงินค้างชำระ (Pending Amount):";
+        amountLabel.innerText = "จำนวนเงินยอดค้างตั้งต้น (บาท):";
       } else if (type === "update") {
-        invoiceIdGroup.style.display = "block";
-        customerNameGroup.style.display = "none";
-        totalAmountGroup.style.display = "none";
         amountLabel.innerText = "จำนวนเงินที่ชำระเข้ามา (ลดยอดค้าง):";
       } else if (type === "deduct") {
-        invoiceIdGroup.style.display = "block";
-        customerNameGroup.style.display = "none";
-        totalAmountGroup.style.display = "none";
-        amountLabel.innerText = "จำนวนเงินที่ต้องการเพิ่มยอดค้าง:";
+        amountLabel.innerText = "จำนวนเงินที่ต้องการตั้งหนี้เพิ่ม:";
       }
     }
 
     document.getElementById("billingForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const btn = document.getElementById("submitBtn");
-      const actionType = document.getElementById("actionType").value;
 
-      btn.innerText = "กำลังประมวลผล...";
+      btn.innerText = "กำลังบันทึกรายการ...";
       btn.disabled = true;
       notify("กำลังส่งข้อมูล...", "info");
 
       const payload = {
-        actionType: actionType,
-        invoiceId: document.getElementById("invoiceId").value.trim(),
+        actionType: document.getElementById("actionType").value,
         customerName: document.getElementById("customerName").value.trim(),
-        pendingAmount: parseFloat(document.getElementById("amount").value) || 0,
-        amount: parseFloat(document.getElementById("amount").value) || 0,
-        totalAmount: parseFloat(document.getElementById("totalAmount").value) || 0
+        amount: parseFloat(document.getElementById("amount").value) || 0
       };
 
       fetch(WEB_APP_URL, {
@@ -328,13 +301,13 @@
         body: JSON.stringify(payload)
       })
       .then(() => {
-        notify("ทำรายการสำเร็จเรียบร้อยแล้ว!", "success");
+        notify("บันทึกธุรกรรมใหม่สำเร็จแล้ว!", "success");
         document.getElementById("billingForm").reset();
         handleActionTypeChange();
       })
       .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
       .finally(() => {
-        btn.innerText = "บันทึกข้อมูล";
+        btn.innerText = "บันทึกรายการใหม่";
         btn.disabled = false;
       });
     });
@@ -348,9 +321,9 @@
         return;
       }
 
-      btn.innerText = "กำลังค้นหาข้อมูล...";
+      btn.innerText = "กำลังคำนวณยอด...";
       btn.disabled = true;
-      notify("กำลังค้นหาข้อมูล...", "info");
+      notify("กำลังดึงประวัติธุรกรรม...", "info");
 
       fetch(WEB_APP_URL)
         .then(res => res.json())
@@ -364,17 +337,21 @@
             if (item.Customer_Name && item.Customer_Name.toString().toLowerCase().includes(searchName)) {
               matchCount++;
               const row = document.createElement("tr");
-              const pendingVal = parseFloat(item.Amount) || 0;
-              const totalVal = parseFloat(item.Total_Amount) || 0;
+              const amt = parseFloat(item.Amount) || 0;
 
-              totalPendingSum += pendingVal;
+              // รวมยอดคงเหลือสุทธิ
+              totalPendingSum += amt;
+
+              const isPayment = amt < 0;
+              const displayAmt = Math.abs(amt).toLocaleString() + " ฿";
 
               row.innerHTML = `
                 <td style="font-size:12px; color:var(--accent-cyan);">${item.Invoice_ID || '-'}</td>
-                <td>${item.Customer_Name}</td>
-                <td>${totalVal.toLocaleString()} ฿</td>
-                <td style="color:${pendingVal > 0 ? 'var(--accent-red)' : 'var(--accent-green)'}; font-weight:600;">
-                  ${pendingVal.toLocaleString()} ฿
+                <td style="color:${isPayment ? 'var(--accent-green)' : 'var(--accent-orange)'}; font-weight:500;">
+                  ${item.Status || (isPayment ? 'Payment' : 'Charge')}
+                </td>
+                <td style="color:${isPayment ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;">
+                  ${isPayment ? '-' : '+'}${displayAmt}
                 </td>
               `;
               tableBody.appendChild(row);
@@ -382,17 +359,27 @@
           });
 
           if (matchCount === 0) {
-            notify("ไม่พบข้อมูลลูกค้ารายนี้ในระบบ", "warning");
+            notify("ไม่พบประวัติลูกค้ารายนี้ในระบบ", "warning");
             document.getElementById("resultArea").style.display = "none";
           } else {
-            notify(`ค้นพบข้อมูล ${matchCount} รายการ`, "success");
-            document.getElementById("totalPendingBox").innerText = "รวมยอดค้างชำระทั้งหมด: " + totalPendingSum.toLocaleString() + " บาท";
+            notify(`พบประวัติธุรกรรม ${matchCount} รายการ`, "success");
+            const finalBox = document.getElementById("totalPendingBox");
+            finalBox.innerText = "สรุปยอดค้างชำระสุทธิ: " + totalPendingSum.toLocaleString() + " บาท";
+            
+            if (totalPendingSum <= 0) {
+              finalBox.style.color = "#86efac";
+              finalBox.style.borderColor = "rgba(34, 197, 94, 0.4)";
+            } else {
+              finalBox.style.color = "#fda4af";
+              finalBox.style.borderColor = "rgba(244, 63, 94, 0.4)";
+            }
+
             document.getElementById("resultArea").style.display = "block";
           }
         })
         .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
         .finally(() => {
-          btn.innerText = "ค้นหายอดค้างชำระ";
+          btn.innerText = "ค้นหาข้อมูล";
           btn.disabled = false;
         });
     }
