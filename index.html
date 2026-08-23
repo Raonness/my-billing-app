@@ -6,8 +6,8 @@
   <title>เริ่มต้นเที่ยวหัวหินกับพวกเรา - Huahin Ocean Service</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- โหลด Library สำหรับสร้าง PromptPay Payload และ QR Code บนหน้าเว็บโดยตรง -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <!-- โหลด Library สำหรับสร้าง QR Code ที่เสถียรที่สุด -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   
   <style>
     :root {
@@ -116,7 +116,10 @@
     .qr-box {
       background: white; padding: 16px; border-radius: 16px; display: inline-block; margin: 15px 0;
     }
-    .qr-box canvas { width: 200px !important; height: 200px !important; display: block; }
+    #qrCodeContainer img, #qrCodeContainer canvas {
+      margin: 0 auto;
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -190,7 +193,7 @@
       <p style="margin: 5px 0; font-size: 13px; color: #cbd5e1;">ชื่อลูกค้า: <b id="modalCustomerName" style="color:white;">-</b></p>
       
       <div class="qr-box">
-        <canvas id="qrCanvas"></canvas>
+        <div id="qrCodeContainer"></div>
       </div>
 
       <div style="font-size: 20px; font-weight: 600; color: #86efac; margin-bottom: 15px;">
@@ -206,7 +209,7 @@
     const PROMPTPAY_NUMBER = "004666016949996"; // PromptPay ID 15 หลัก
     let currentTotalPending = 0;
 
-    // ฟังก์ชันสร้าง EMVCo Payload สำหรับ PromptPay e-Wallet 15 หลักมาตรฐานธนาคารแห่งประเทศไทย
+    // ฟังก์ชันสร้าง EMVCo Payload สำหรับ PromptPay รองรับ e-Wallet ID 15 หลัก
     function generatePromptPayPayload(target, amount) {
       function sanitizeInput(input) { return input.replace(/[^0-9]/g, ''); }
       function formatField(id, value) { return id + ('0' + value.length).slice(-2) + value; }
@@ -233,7 +236,7 @@
       const merchantInfo = formatField('00', 'A000000677010111') + formatField(targetType, targetFormatted);
       
       let payload = formatField('00', '01') +
-                    formatField('01', amount ? '12' : '11') +
+                    formatField('01', (amount && amount > 0) ? '12' : '11') +
                     formatField('29', merchantInfo) +
                     formatField('53', '764') +
                     formatField('58', 'TH');
@@ -323,7 +326,7 @@
         .finally(() => hideLoader());
     }
 
-    // ฟังก์ชันสร้างและแสดง QR Code โดยตรงบน Browser (ไม่ต้องง้อ API สภายนอก)
+    // ฟังก์ชันสร้างและแสดง QR Code
     function showQrModal(customerName, amount) {
       if (!amount || amount <= 0) {
         notify("ยอดเงินต้องมากกว่า 0 บาทเพื่อสร้าง QR Code", false);
@@ -332,12 +335,19 @@
       document.getElementById("modalCustomerName").innerText = customerName || "ไม่ระบุชื่อ";
       document.getElementById("modalAmountDisplay").innerText = parseFloat(amount).toLocaleString(undefined, {minimumFractionDigits: 2});
       
-      // สร้าง Payload PromptPay EMVCo
-      const qrPayload = generatePromptPayPayload(PROMPTPAY_NUMBER, amount);
+      const container = document.getElementById("qrCodeContainer");
+      container.innerHTML = ""; // ล้างคิวอาร์โค้ดเก่า
+
+      const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, amount);
       
-      // วาดรูป QR Code ลงใน <canvas>
-      QRCode.toCanvas(document.getElementById('qrCanvas'), qrPayload, { width: 200, margin: 1 }, function (error) {
-        if (error) console.error(error);
+      // วาดรูป QR Code ด้วย QRCodeJS
+      new QRCode(container, {
+        text: payload,
+        width: 200,
+        height: 200,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.M
       });
 
       document.getElementById("qrModal").style.display = "flex";
