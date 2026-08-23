@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>เริ่มต้นเที่ยวหัวหินกับพวกเรา - Huahin Ocean Service</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- โหลด Library สำหรับสร้าง PromptPay Payload และ QR Code บนหน้าเว็บโดยตรง -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  
   <style>
     :root {
       --sea-deep: #0a2540; --sea-blue: #0077b6; --sea-cyan: #00b4d8;
@@ -110,9 +114,9 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
     .qr-box {
-      background: white; padding: 12px; border-radius: 16px; display: inline-block; margin: 15px 0;
+      background: white; padding: 16px; border-radius: 16px; display: inline-block; margin: 15px 0;
     }
-    .qr-box img { width: 200px; height: 200px; display: block; }
+    .qr-box canvas { width: 200px !important; height: 200px !important; display: block; }
   </style>
 </head>
 <body>
@@ -157,7 +161,6 @@
           </table>
           <div class="summary-box" id="totalPendingBox">ยอดค้างชำระคงเหลือ: 0.00 บาท</div>
           
-          <!-- ปุ่มสร้าง คิวอาร์โค้ด สแกนจ่ายจากยอดรวม -->
           <button class="btn btn-qr" onclick="openQrModalFromTotal()">📱 สแกนจ่าย PromptPay QR จากยอดคงเหลือ</button>
         </div>
       </div>
@@ -187,7 +190,7 @@
       <p style="margin: 5px 0; font-size: 13px; color: #cbd5e1;">ชื่อลูกค้า: <b id="modalCustomerName" style="color:white;">-</b></p>
       
       <div class="qr-box">
-        <img id="qrImage" src="" alt="PromptPay QR Code">
+        <canvas id="qrCanvas"></canvas>
       </div>
 
       <div style="font-size: 20px; font-weight: 600; color: #86efac; margin-bottom: 15px;">
@@ -202,6 +205,46 @@
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
     const PROMPTPAY_NUMBER = "004666016949996"; // PromptPay ID 15 หลัก
     let currentTotalPending = 0;
+
+    // ฟังก์ชันสร้าง EMVCo Payload สำหรับ PromptPay e-Wallet 15 หลักมาตรฐานธนาคารแห่งประเทศไทย
+    function generatePromptPayPayload(target, amount) {
+      function sanitizeInput(input) { return input.replace(/[^0-9]/g, ''); }
+      function formatField(id, value) { return id + ('0' + value.length).slice(-2) + value; }
+      function crc16(data) {
+        let crc = 0xFFFF;
+        for (let i = 0; i < data.length; i++) {
+          crc ^= data.charCodeAt(i) << 8;
+          for (let j = 0; j < 8; j++) {
+            if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
+            else crc <<= 1;
+          }
+        }
+        return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+      }
+
+      const cleanTarget = sanitizeInput(target);
+      let targetType = '03'; // e-Wallet ID (15 หลัก)
+      if (cleanTarget.length === 10) targetType = '01'; // Phone
+      else if (cleanTarget.length === 13) targetType = '02'; // ID Card/Tax ID
+
+      let targetFormatted = cleanTarget;
+      if (targetType === '01') targetFormatted = '0066' + cleanTarget.substring(1);
+
+      const merchantInfo = formatField('00', 'A000000677010111') + formatField(targetType, targetFormatted);
+      
+      let payload = formatField('00', '01') +
+                    formatField('01', amount ? '12' : '11') +
+                    formatField('29', merchantInfo) +
+                    formatField('53', '764') +
+                    formatField('58', 'TH');
+
+      if (amount && amount > 0) {
+        payload += formatField('54', parseFloat(amount).toFixed(2));
+      }
+
+      payload += '6304';
+      return payload + crc16(payload);
+    }
 
     function showLoader(text = "กำลังโหลด...") {
       document.getElementById("loaderText").innerText = text;
@@ -280,7 +323,7 @@
         .finally(() => hideLoader());
     }
 
-    // ฟังก์ชันเปิด QR Modal (ปรับใช้ API จาก ppqr.io เพื่อรองรับ e-Wallet/PromptPay ID 15 หลัก)
+    // ฟังก์ชันสร้างและแสดง QR Code โดยตรงบน Browser (ไม่ต้องง้อ API สภายนอก)
     function showQrModal(customerName, amount) {
       if (!amount || amount <= 0) {
         notify("ยอดเงินต้องมากกว่า 0 บาทเพื่อสร้าง QR Code", false);
@@ -289,9 +332,14 @@
       document.getElementById("modalCustomerName").innerText = customerName || "ไม่ระบุชื่อ";
       document.getElementById("modalAmountDisplay").innerText = parseFloat(amount).toLocaleString(undefined, {minimumFractionDigits: 2});
       
-      // ดึง QR Code ผ่าน API ppqr.io ที่รองรับ PromptPay ID 15 หลัก
-      const qrApiUrl = `https://ppqr.io/api/image?id=${PROMPTPAY_NUMBER}&amount=${amount}`;
-      document.getElementById("qrImage").src = qrApiUrl;
+      // สร้าง Payload PromptPay EMVCo
+      const qrPayload = generatePromptPayPayload(PROMPTPAY_NUMBER, amount);
+      
+      // วาดรูป QR Code ลงใน <canvas>
+      QRCode.toCanvas(document.getElementById('qrCanvas'), qrPayload, { width: 200, margin: 1 }, function (error) {
+        if (error) console.error(error);
+      });
+
       document.getElementById("qrModal").style.display = "flex";
     }
 
