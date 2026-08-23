@@ -3,21 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบเรียกเก็บเงิน (Billing System)</title>
+  <title>ระบบเรียกเก็บเงิน & ตรวจสอบยอด</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; padding: 20px; max-width: 500px; margin: auto; }
-    .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    h2 { margin-top: 0; color: #333; text-align: center; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; padding: 20px; max-width: 600px; margin: auto; }
+    .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    h2, h3 { margin-top: 0; color: #333; text-align: center; }
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
     input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
     button { padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
     button:hover { background-color: #218838; }
+    button.search-btn { background-color: #007bff; }
+    button.search-btn:hover { background-color: #0056b3; }
     button:disabled { background-color: #cccccc; cursor: not-allowed; }
+    
+    /* สไตล์ตารางแสดงผลยอดค้างชำระ */
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
+    th { background-color: #f2f2f2; }
+    .total-box { font-size: 18px; font-weight: bold; color: #d9534f; text-align: right; margin-top: 10px; }
+    .status-pending { color: #d9534f; font-weight: bold; }
+    .status-paid { color: #5cb85c; font-weight: bold; }
   </style>
 </head>
 <body>
 
+  <!-- ส่วนที่ 1: บันทึกข้อมูล (โค้ดเดิมของคุณ) -->
   <div class="card">
     <h2>บันทึกรายการเรียกเก็บเงิน</h2>
     <form id="billingForm">
@@ -37,10 +48,34 @@
     </form>
   </div>
 
+  <!-- ส่วนที่ 2: ตรวจสอบยอดค้างชำระสำหรับลูกค้า (เพิ่มใหม่) -->
+  <div class="card">
+    <h3>🔍 ตรวจสอบยอดค้างชำระ</h3>
+    <div class="form-group">
+      <label>พิมพ์ชื่อลูกค้า เพื่อค้นหา:</label>
+      <input type="text" id="searchName" placeholder="กรอกชื่อลูกค้า...">
+    </div>
+    <button type="button" class="search-btn" id="searchBtn" onclick="checkBalance()">ค้นหายอดค้างชำระ</button>
+
+    <div id="resultArea" style="display:none;">
+      <table>
+        <thead>
+          <tr>
+            <th>รหัสรายการ</th>
+            <th>ยอดรวมสุทธิ</th>
+            <th>สถานะ</th>
+          </tr>
+        </thead>
+        <tbody id="resultTableBody"></tbody>
+      </table>
+      <div class="total-box" id="totalPendingBox">รวมยอดค้างชำระทั้งหมด: 0.00 บาท</div>
+    </div>
+  </div>
+
   <script>
-    // URL สำหรับเชื่อมต่อ Google Apps Script Web App
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
 
+    // ฟังก์ชันบันทึกข้อมูลเดิม
     document.getElementById("billingForm").addEventListener("submit", function(e) {
       e.preventDefault();
       
@@ -64,14 +99,72 @@
         alert("บันทึกข้อมูลเข้า Google Sheets เรียบร้อยแล้ว!");
         document.getElementById("billingForm").reset();
       })
-      .catch(err => {
-        alert("เกิดข้อผิดพลาด: " + err);
-      })
+      .catch(err => alert("เกิดข้อผิดพลาด: " + err))
       .finally(() => {
         btn.innerText = "บันทึกข้อมูล";
         btn.disabled = false;
       });
     });
+
+    // ฟังก์ชันสำหรับค้นหายอดค้างชำระ (เพิ่มใหม่)
+    function checkBalance() {
+      const searchName = document.getElementById("searchName").value.trim().toLowerCase();
+      const btn = document.getElementById("searchBtn");
+      
+      if (!searchName) {
+        alert("กรุณากรอกชื่อลูกค้าเพื่อทำการค้นหาครับ");
+        return;
+      }
+
+      btn.innerText = "กำลังค้นหา...";
+      btn.disabled = true;
+
+      fetch(WEB_APP_URL)
+        .then(res => res.json())
+        .then(data => {
+          const tableBody = document.getElementById("resultTableBody");
+          tableBody.innerHTML = "";
+          let totalPending = 0;
+          let matchCount = 0;
+
+          data.forEach(item => {
+            // ค้นหาแบบไม่สนตัวพิมพ์ใหญ่-เล็ก
+            if (item.Customer_Name && item.Customer_Name.toString().toLowerCase().includes(searchName)) {
+              matchCount++;
+              const row = document.createElement("tr");
+              
+              // คำนวณยอดค้างรวม (เฉพาะรายการที่ Status ยังเป็น Pending)
+              const amountVal = parseFloat(item.Total_Amount) || 0;
+              if (item.Status === "Pending") {
+                totalPending += amountVal;
+              }
+
+              const statusClass = item.Status === "Pending" ? "status-pending" : "status-paid";
+              const statusText = item.Status === "Pending" ? "ยังไม่ชำระ" : "ชำระแล้ว";
+
+              row.innerHTML = `
+                <td>${item.Invoice_ID || '-'}</td>
+                <td>${amountVal.toLocaleString()} บาท</td>
+                <td class="${statusClass}">${statusText}</td>
+              `;
+              tableBody.appendChild(row);
+            }
+          });
+
+          if (matchCount === 0) {
+            alert("ไม่พบข้อมูลลูกค้าชื่อนี้ในระบบ");
+            document.getElementById("resultArea").style.display = "none";
+          } else {
+            document.getElementById("totalPendingBox").innerText = "รวมยอดค้างชำระทั้งหมด: " + totalPending.toLocaleString() + " บาท";
+            document.getElementById("resultArea").style.display = "block";
+          }
+        })
+        .catch(err => alert("เกิดข้อผิดพลาดในการดึงข้อมูล: " + err))
+        .finally(() => {
+          btn.innerText = "ค้นหายอดค้างชำระ";
+          btn.disabled = false;
+        });
+    }
   </script>
 </body>
 </html>
