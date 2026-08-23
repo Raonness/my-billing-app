@@ -163,6 +163,7 @@
     }
     function logout() { sessionStorage.removeItem("adminLoggedIn"); location.reload(); }
 
+    // อัปเดต: โหลดรายการชำระเงินและส่งค่า ชื่อ/จำนวนเงิน เข้าปุ่มกด
     function loadPendingPayments() {
       showLoader("กำลังโหลดรายการรอยืนยัน...");
       fetch(WEB_APP_URL)
@@ -174,14 +175,16 @@
             if (item.Status === "Pending Verification") {
               count++;
               const timeStr = item.Timestamp ? new Date(item.Timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+              const amt = Math.abs(parseFloat(item.Amount)||0);
               const tr = document.createElement("tr");
+              
               tr.innerHTML = `
                 <td style="font-weight:500;">${item.Customer_Name || '-'}</td>
                 <td style="font-size:11px; color:#cbd5e1;">${timeStr}</td>
-                <td style="color:#86efac; font-weight:600;">-${Math.abs(parseFloat(item.Amount)||0).toLocaleString()} ฿</td>
+                <td style="color:#86efac; font-weight:600;">-${amt.toLocaleString()} ฿</td>
                 <td>
-                  <button class="btn btn-agree" onclick="processPayment(${item.rowIndex}, 'approve')">ตกลง</button>
-                  <button class="btn btn-reject" onclick="processPayment(${item.rowIndex}, 'reject')">ปฏิเสธ</button>
+                  <button class="btn btn-agree" onclick="processPayment(${item.rowIndex}, 'approve', '${item.Customer_Name}', ${amt})">ตกลง</button>
+                  <button class="btn btn-reject" onclick="processPayment(${item.rowIndex}, 'reject', '${item.Customer_Name}', ${amt})">ปฏิเสธ</button>
                 </td>`;
               tbody.appendChild(tr);
             }
@@ -192,9 +195,17 @@
         .finally(() => hideLoader());
     }
 
-    function processPayment(rowIndex, statusType) {
+    // อัปเดต: แสดง Popup ยืนยันแบบละเอียดสำหรับส่วนจัดการอนุมัติ
+    function processPayment(rowIndex, statusType, customerName, amount) {
       const isAgree = statusType === 'approve';
-      if (!confirm(`ยืนยันที่จะ "${isAgree ? 'ตกลง' : 'ปฏิเสธ'}" รายการนี้?`)) return;
+      const actionText = isAgree ? '✅ อนุมัติ (ตกลง)' : '❌ ปฏิเสธ';
+      
+      const confirmMessage = `⚠️ ยืนยันการตรวจสอบรายการ\n\n👤 ลูกค้า: ${customerName}\n💰 ยอดชำระ: ${amount.toLocaleString()} บาท\n\nคุณต้องการ "${actionText}" รายการนี้ใช่หรือไม่?`;
+      
+      if (!confirm(confirmMessage)) {
+        return; 
+      }
+
       showLoader("กำลังประมวลผล...");
 
       fetch(WEB_APP_URL, {
@@ -205,6 +216,7 @@
       .catch(() => { notify("เกิดข้อผิดพลาด กรุณาลองใหม่", false); hideLoader(); });
     }
 
+    // ส่วนเพิ่มยอดตั้งหนี้ +10 ทุกคน (มี confirm อยู่แล้ว)
     function bulkAdd10() {
       if (!confirm("ยืนยันการตั้งหนี้ +10 บาทให้ทุกคน?")) return;
       showLoader("กำลังรันสคริปต์ตั้งหนี้ +10 บาท...");
@@ -218,20 +230,19 @@
       .finally(() => hideLoader());
     }
 
+    // อัปเดต: แสดง Popup ยืนยันแบบละเอียดสำหรับฟอร์มกรอกข้อมูลเอง
     document.getElementById("adminActionForm")?.addEventListener("submit", function(e) {
       e.preventDefault();
 
-      // ดึงข้อมูลที่กรอกมาเพื่อแสดงใน Popup ยืนยัน
       const actionTypeElement = document.getElementById("actionType");
       const actionText = actionTypeElement.options[actionTypeElement.selectedIndex].text;
       const customerName = document.getElementById("customerName").value.trim();
       const amount = document.getElementById("amount").value;
 
-      // แสดง Popup ยืนยัน (ตกลง / ยกเลิก) ก่อนบันทึก
       const confirmMessage = `⚠️ กรุณายืนยันการทำรายการ\n\n🔹 รูปแบบ: ${actionText}\n👤 ลูกค้า: ${customerName}\n💰 จำนวนเงิน: ${amount} บาท\n\nคุณต้องการบันทึกข้อมูลนี้ใช่หรือไม่?`;
       
       if (!confirm(confirmMessage)) {
-        return; // ยกเลิกการทำงานหากกด Cancel
+        return; 
       }
 
       showLoader("กำลังบันทึกข้อมูล...");
