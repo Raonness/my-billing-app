@@ -13,7 +13,7 @@
       --sea-foam: #90e0ef;
       --sand-gold: #f4a261;
       --coral-red: #e76f51;
-      --glass-sea: rgba(10, 37, 64, 0.55);
+      --glass-sea: rgba(10, 37, 64, 0.6);
       --glass-border: rgba(144, 224, 239, 0.25);
       --text-light: #f8fafc;
     }
@@ -25,23 +25,23 @@
     #welcomePage {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
-      background: linear-gradient(rgba(10, 37, 64, 0.4), rgba(10, 37, 64, 0.7)), 
+      background: linear-gradient(rgba(10, 37, 64, 0.4), rgba(10, 37, 64, 0.75)), 
                   url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
       display: flex; flex-direction: column; justify-content: center; align-items: center;
       z-index: 9999; text-align: center; padding: 20px;
     }
 
     .hero-title {
-      font-size: 3rem; font-weight: 700; margin-bottom: 10px;
-      text-shadow: 0 4px 15px rgba(0, 180, 216, 0.6);
+      font-size: 3.2rem; font-weight: 700; margin-bottom: 10px;
+      text-shadow: 0 4px 20px rgba(0, 180, 216, 0.8);
       background: linear-gradient(to right, #ffffff, var(--sea-foam));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
 
-    .hero-subtitle { font-size: 1.3rem; color: var(--sea-foam); margin-bottom: 30px; letter-spacing: 1px; }
+    .hero-subtitle { font-size: 1.25rem; color: var(--sea-foam); margin-bottom: 35px; letter-spacing: 1px; }
 
     .btn-start {
-      padding: 16px 45px; font-size: 1.2rem; font-weight: 600;
+      padding: 16px 48px; font-size: 1.2rem; font-weight: 600;
       color: #0a2540; background: linear-gradient(135deg, var(--sea-foam), var(--sea-cyan));
       border: none; border-radius: 50px; cursor: pointer;
       box-shadow: 0 0 25px rgba(0, 180, 216, 0.6), 0 0 50px rgba(0, 180, 216, 0.2);
@@ -54,24 +54,24 @@
       50% { transform: scale(1.05); }
     }
 
-    /* 🌊 อนิเมชั่นคลื่นเปิดตัวสุดอลังการ */
+    /* 🌊 อนิเมชั่นคลื่นเปิดตัว */
     .ocean-curtain {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(180deg, var(--sea-cyan), var(--sea-deep));
       z-index: 10000; pointer-events: none; opacity: 0; transform: translateY(100%);
-      transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
+      transition: transform 0.9s cubic-bezier(0.77, 0, 0.175, 1);
     }
     .ocean-curtain.active { transform: translateY(0%); opacity: 1; }
 
-    /* 🌊 2. หน้าหลักธีมทะเล */
+    /* 🌊 2. หน้าหลักบริการธีมทะเล */
     #mainContent {
-      display: none; opacity: 0; transition: opacity 1s ease;
+      display: none; opacity: 0; transition: opacity 0.8s ease;
       min-height: 100vh; padding: 30px 15px;
-      background: linear-gradient(180deg, rgba(10,37,64,0.85) 0%, rgba(0,119,182,0.6) 100%),
+      background: linear-gradient(180deg, rgba(10,37,64,0.85) 0%, rgba(0,119,182,0.65) 100%),
                   url('https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1920&q=80') center/cover fixed no-repeat;
     }
 
-    .container { max-width: 700px; margin: 0 auto; }
+    .container { max-width: 720px; margin: 0 auto; }
     .card {
       background: var(--glass-sea); backdrop-filter: blur(20px);
       border: 1px solid var(--glass-border); border-radius: 24px;
@@ -85,7 +85,7 @@
     .form-group { margin-bottom: 18px; }
     label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--sea-foam); }
     input {
-      width: 100%; padding: 12px 16px; background: rgba(10, 37, 64, 0.7);
+      width: 100%; padding: 12px 16px; background: rgba(10, 37, 64, 0.75);
       border: 1px solid var(--glass-border); border-radius: 12px; color: white; font-size: 15px; outline: none;
     }
 
@@ -109,25 +109,26 @@
 </head>
 <body>
 
-  <!-- ม่านคลื่นอนิเมชั่น -->
+  <!-- ม่านอนิเมชั่นคลื่นทะเล -->
   <div class="ocean-curtain" id="oceanCurtain"></div>
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- 1. Landing Page หน้าต้อนรับ -->
   <div id="welcomePage">
     <h1 class="hero-title">หัวหินกับพวกเรา 🌊</h1>
-    <p class="hero-subtitle">สัมผัสประสบการณ์สุดพิเศษ และจัดการข้อมูลการเดินทางได้อย่างง่ายดาย</p>
+    <p class="hero-subtitle">สัมผัสประสบการณ์สุดพิเศษ และจัดการข้อมูลบริการได้อย่างง่ายดาย</p>
     <button class="btn-start" onclick="startExperience()">เริ่มกันเลย</button>
   </div>
 
-  <!-- 2. หน้าข้อมูลบริการ -->
+  <!-- 2. หน้าหลักข้อมูลบริการ -->
   <div id="mainContent">
     <div class="container">
       <div class="top-bar">
         <h1>🏖️ สรุปยอดบริการหัวหิน</h1>
-        <a href="payment.html" class="btn-admin-link">🔒 ผู้ดูแลระบบ</a>
+        <a href="payment.html" class="btn-admin-link">🔒 สำหรับผู้ดูแลระบบ</a>
       </div>
 
+      <!-- ส่วนตรวจสอบยอด -->
       <div class="card">
         <h2 style="margin-top:0; font-size: 18px; color: var(--sea-cyan);">🔍 ตรวจสอบยอดและประวัติทำรายการ</h2>
         <div class="form-group">
@@ -153,6 +154,7 @@
         </div>
       </div>
 
+      <!-- ส่วนแจ้งชำระเงิน -->
       <div class="card">
         <h2 style="margin-top:0; font-size: 18px; color: #86efac;">💳 แจ้งชำระเงินออนไลน์</h2>
         <form id="clientPaymentForm">
@@ -174,7 +176,6 @@
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
 
-    // อนิเมชั่นคลื่นทะเลเปิดตัว
     function startExperience() {
       const curtain = document.getElementById("oceanCurtain");
       curtain.classList.add("active");
@@ -224,8 +225,7 @@
 
               if (!isPending && status !== "Rejected") total += amt;
 
-              // แปลงการแสดงผลเวลา
-              let timeStr = item.Timestamp ? new Date(item.Timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+              const timeStr = item.Timestamp ? new Date(item.Timestamp).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-';
 
               let badge = `<span style="color:#f59e0b;">⏳ รออนุมัติ</span>`;
               if (status === "Rejected") badge = `<span style="color:#f43f5e;">❌ ปฏิเสธ</span>`;
