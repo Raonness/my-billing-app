@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>เริ่มต้นเที่ยวหัวหินกับพวกเรา - Huahin Ocean Service</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   
   <style>
@@ -17,7 +16,6 @@
     * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.3s ease; }
     body { background: var(--sea-deep); color: var(--text-light); min-height: 100vh; margin: 0; overflow-x: hidden; }
 
-    /* Loader Overlay */
     .loader-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(10, 37, 64, 0.85); backdrop-filter: blur(6px);
@@ -33,7 +31,6 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .loader-text { color: var(--sea-foam); font-size: 16px; font-weight: 500; letter-spacing: 1px; }
 
-    /* Welcome Page */
     #welcomePage {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: linear-gradient(rgba(10,37,64,0.4), rgba(10,37,64,0.75)), 
@@ -57,7 +54,6 @@
     .btn-start:hover { transform: scale(1.08); box-shadow: 0 0 35px rgba(144, 224, 239, 0.9); }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-    /* Animations */
     .ocean-curtain {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(180deg, var(--sea-cyan), var(--sea-deep));
@@ -66,7 +62,6 @@
     }
     .ocean-curtain.active { transform: translateY(0%); opacity: 1; }
 
-    /* Main Content */
     #mainContent {
       display: none; opacity: 0; transition: opacity 0.8s ease; min-height: 100vh; padding: 30px 15px;
       background: linear-gradient(180deg, rgba(10,37,64,0.85) 0%, rgba(0,119,182,0.65) 100%),
@@ -86,7 +81,6 @@
       width: 100%; padding: 12px 16px; background: rgba(10, 37, 64, 0.75);
       border: 1px solid var(--glass-border); border-radius: 12px; color: white; font-size: 15px; outline: none;
     }
-    input[type="file"] { padding: 8px 12px; background: rgba(255, 255, 255, 0.05); }
     .btn { width: 100%; padding: 12px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
     .btn-primary { background: linear-gradient(135deg, var(--sea-cyan), var(--sea-blue)); color: white; }
     .btn-success { background: linear-gradient(135deg, #22c55e, #059669); color: white; margin-top: 10px; }
@@ -103,7 +97,6 @@
     .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999999; }
     .toast { padding: 14px 20px; border-radius: 12px; background: rgba(10, 37, 64, 0.95); border: 1px solid var(--glass-border); color: white; font-size: 14px; margin-bottom: 10px; }
 
-    /* Modal คิวอาร์โค้ด */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 99999;
@@ -170,21 +163,13 @@
             <label>จำนวนเงินที่โอนชำระ (บาท):</label>
             <input type="number" id="payAmount" placeholder="0.00" step="0.01" required>
           </div>
-          <button type="button" class="btn btn-qr" style="margin-top: 0; margin-bottom: 10px;" onclick="openQrModalFromInput()">📱 1. เปิดสแกน QR Code เพื่อโอนเงิน</button>
-          
-          <!-- เพิ่มช่องอัปโหลดสลิป -->
-          <div class="form-group" style="margin-top: 15px;">
-            <label style="color: #fca5a5;">อัปโหลดภาพสลิปเพื่อยืนยันอัตโนมัติ (บังคับ):</label>
-            <input type="file" id="slipUpload" accept="image/*" required>
-          </div>
-          
-          <button type="submit" class="btn btn-success">✅ 2. ส่งข้อมูลและตรวจสอบสลิป</button>
+          <button type="button" class="btn btn-qr" style="margin-top: 0; margin-bottom: 10px;" onclick="openQrModalFromInput()">📱 เปิดสแกน QR Code ตามยอดเงินนี้</button>
+          <button type="submit" class="btn btn-success">✅ แจ้งโอนชำระเงิน</button>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Modal ป๊อปอัป คิวอาร์โค้ด -->
   <div class="modal" id="qrModal">
     <div class="modal-content">
       <h3 style="margin-top:0; color: var(--sea-foam); font-size: 18px;">📱 สแกนจ่ายผ่าน PromptPay</h3>
@@ -288,7 +273,7 @@
               if (!isPending && status !== "Rejected") total += amt;
               const timeStr = item.Timestamp ? new Date(item.Timestamp).toLocaleString('th-TH') : '-';
 
-              let badge = `<span style="color:#f59e0b;">⏳ รออนุมัติ</span>`;
+              let badge = `<span style="color:#f59e0b;">⏳ รอตรวจสอบ</span>`;
               if (status === "Rejected") badge = `<span style="color:#f43f5e;">❌ ปฏิเสธ</span>`;
               else if (amt < 0) badge = `<span style="color:#22c55e;">✅ ชำระแล้ว</span>`;
               else if (!isPending) badge = `<span style="color:#38bdf8;">📌 ตั้งหนี้</span>`;
@@ -334,41 +319,23 @@
     function openQrModalFromInput() { showQrModal(document.getElementById("payCustomerName").value.trim(), parseFloat(document.getElementById("payAmount").value) || 0); }
     function closeQrModal() { document.getElementById("qrModal").style.display = "none"; }
 
-    // ฟังก์ชันจัดการฟอร์มเมื่อกด Submit และอ่านภาพสลิป
-    document.getElementById("clientPaymentForm").addEventListener("submit", async function(e) {
+    document.getElementById("clientPaymentForm").addEventListener("submit", function(e) {
       e.preventDefault();
-      const fileInput = document.getElementById('slipUpload');
-      const file = fileInput.files[0];
-      
-      if (!file) return notify("กรุณาแนบภาพสลิปก่อนส่งข้อมูล", false);
-      
-      showLoader("กำลังตรวจสอบสลิปและบันทึกข้อมูล... (อาจใช้เวลาสักครู่)");
-
-      // แปลงภาพเป็น Base64
-      let base64Image = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result.split(',')[1]); // เอาเฉพาะส่วนข้อมูล Raw
-        reader.readAsDataURL(file);
-      });
+      showLoader("กำลังบันทึกข้อมูล...");
 
       fetch(WEB_APP_URL, {
         method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ 
-          actionType: "update_with_slip", 
+          actionType: "update", 
           customerName: document.getElementById("payCustomerName").value.trim(), 
-          amount: parseFloat(document.getElementById("payAmount").value) || 0,
-          slipBase64: base64Image
+          amount: parseFloat(document.getElementById("payAmount").value) || 0 
         })
       })
       .then(r => r.json())
       .then((data) => {
-        if (data.status === "success") {
-          notify(data.message); // แจ้งเตือนสลิปถูกต้อง
-          document.getElementById("clientPaymentForm").reset();
-          if (document.getElementById("searchName").value.trim()) checkBalance();
-        } else {
-          notify(data.message || "สลิปไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง", false);
-        }
+        notify(data.message || "แจ้งชำระเงินเรียบร้อยแล้ว (รอแอดมินตรวจสอบ)");
+        document.getElementById("clientPaymentForm").reset();
+        if (document.getElementById("searchName").value.trim()) checkBalance();
       })
       .catch(() => notify("ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่", false))
       .finally(() => hideLoader());
