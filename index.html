@@ -14,7 +14,6 @@
       --accent-green: #22c55e;
       --accent-red: #f43f5e;
       --accent-purple: #a855f7;
-      --accent-yellow: #facc15;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -22,7 +21,7 @@
     * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
     body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; padding: 20px 10px; margin: 0; display: flex; flex-direction: column; align-items: center; }
 
-    .container { width: 100%; max-width: 750px; }
+    .container { width: 100%; max-width: 700px; }
     .card {
       background: var(--glass-bg);
       backdrop-filter: blur(16px);
@@ -40,17 +39,17 @@
 
     .form-group { margin-bottom: 18px; }
     label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
-    input {
+    input, select {
       width: 100%;
       padding: 12px 16px;
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(15, 23, 42, 0.8);
       border: 1px solid var(--glass-border);
       border-radius: 12px;
       color: white;
       font-size: 15px;
       outline: none;
     }
-    input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 12px rgba(56, 189, 248, 0.3); }
+    input:focus, select:focus { border-color: var(--accent-cyan); box-shadow: 0 0 12px rgba(56, 189, 248, 0.3); }
 
     .btn {
       width: 100%;
@@ -68,11 +67,7 @@
     .btn-primary { background: linear-gradient(135deg, #0284c7, #2563eb); color: white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6); }
     .btn-admin { background: rgba(255, 255, 255, 0.1); color: var(--accent-cyan); width: auto; padding: 8px 16px; border: 1px solid var(--glass-border); }
-    .btn-admin:hover { background: rgba(56, 189, 248, 0.2); }
     
-    .btn-action { padding: 4px 10px; font-size: 12px; border-radius: 8px; border: none; cursor: pointer; background: rgba(56, 189, 248, 0.2); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); }
-    .btn-action:hover { background: rgba(56, 189, 248, 0.4); }
-
     table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
     th { text-align: left; padding: 12px 8px; color: var(--text-muted); border-bottom: 1px solid var(--glass-border); }
     td { padding: 12px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
@@ -98,9 +93,6 @@
     .toast.info { border-left: 4px solid var(--accent-cyan); }
     .toast.warning { border-left: 4px solid var(--accent-red); }
 
-    .text-paid { color: var(--accent-green); font-weight: 500; }
-    .text-pending { color: var(--accent-red); font-weight: 500; }
-
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes zoomIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
     @keyframes slideInRight { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
@@ -111,17 +103,16 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <div class="container">
-    
     <div class="top-bar">
       <h1>⚡ Billing Dashboard</h1>
       <button class="btn btn-admin" id="loginToggleBtn" onclick="toggleLoginModal()">🔒 เข้าสู่ระบบ Admin</button>
     </div>
 
-    <!-- ส่วนที่ 1: ค้นหาและดูยอด -->
+    <!-- ส่วนค้นหาข้อมูล -->
     <div class="card">
       <h2 style="margin-top:0; font-size: 18px; color: var(--accent-cyan);">🔍 ตรวจสอบยอดค้างชำระ</h2>
       <div class="form-group">
-        <label>กรอกชื่อลูกค้าของคุณเพื่อค้นหา:</label>
+        <label>กรอกชื่อลูกค้าเพื่อค้นหา:</label>
         <input type="text" id="searchName" placeholder="เช่น นายสมชาย หรือ บริษัท ABC...">
       </div>
       <button class="btn btn-primary" id="searchBtn" onclick="checkBalance()">ค้นหายอดค้างชำระ</button>
@@ -130,83 +121,78 @@
         <table>
           <thead>
             <tr>
-              <th>ลูกค้า</th>
-              <th>ยอดรวม</th>
+              <th>Invoice ID</th>
+              <th>ชื่อลูกค้า</th>
               <th>จ่ายแล้ว</th>
-              <th>คงเหลือ</th>
-              <th>จัดการ</th>
+              <th>ยอดรวม</th>
             </tr>
           </thead>
           <tbody id="resultTableBody"></tbody>
         </table>
-        <div class="summary-box" id="totalPendingBox">รวมยอดคงเหลือค้างชำระ: 0.00 บาท</div>
+        <div class="summary-box" id="totalPendingBox">รวมยอดค้างชำระ: 0.00 บาท</div>
       </div>
     </div>
 
-    <!-- ส่วนที่ 2: ฟอร์มบันทึกข้อมูล (Admin Only) -->
+    <!-- ส่วน Admin จัดการข้อมูล -->
     <div class="card" id="adminPanel" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h2 style="margin:0; font-size: 18px; color: var(--accent-purple);">📝 บันทึกการเรียกเก็บเงิน (Admin Mode)</h2>
+        <h2 style="margin:0; font-size: 18px; color: var(--accent-purple);">📝 ระบบจัดการข้อมูล (Admin Mode)</h2>
         <span style="font-size: 12px; color: var(--accent-green); background: rgba(34, 197, 94, 0.2); padding: 4px 8px; border-radius: 8px;">● Logged in</span>
       </div>
       
       <form id="billingForm">
+        <!-- ตัวเลือกประเภทการทำงานสำหรับ Admin -->
         <div class="form-group">
-          <label>ชื่อลูกค้า:</label>
-          <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า" required>
+          <label style="color: var(--accent-cyan); font-weight: 600;">เลือกการดำเนินการ:</label>
+          <select id="actionType" onchange="handleActionTypeChange()">
+            <option value="add">🟢 เพิ่มรายการใหม่ (Add New)</option>
+            <option value="update">🔵 อัปเดตข้อมูล/เพิ่มยอดจ่าย (Update Payment)</option>
+            <option value="deduct">🔴 ลด/ยกเลิกยอด (Deduct Amount)</option>
+          </select>
         </div>
+
+        <div class="form-group" id="invoiceIdGroup" style="display: none;">
+          <label>ระบุ Invoice ID (ที่ต้องการอัปเดต/ลด):</label>
+          <input type="text" id="invoiceId" placeholder="เช่น INV-1700000000000">
+        </div>
+
+        <div class="form-group" id="customerNameGroup">
+          <label>ชื่อลูกค้า:</label>
+          <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า">
+        </div>
+
         <div class="form-group">
-          <label>ยอดที่จ่ายแล้วเริ่มแรก (บาท):</label>
+          <label id="amountLabel">จำนวนเงินที่จ่าย (บาท):</label>
           <input type="number" id="amount" placeholder="0.00" step="0.01" value="0">
         </div>
-        <div class="form-group">
-          <label>ยอดรวมสุทธิที่ต้องชำระ (Total Amount):</label>
-          <input type="number" id="totalAmount" placeholder="0.00" step="0.01" required>
+
+        <div class="form-group" id="totalAmountGroup">
+          <label>ยอดรวมสุทธิ (Total Amount):</label>
+          <input type="number" id="totalAmount" placeholder="0.00" step="0.01">
         </div>
-        <button type="submit" class="btn btn-primary" id="submitBtn" style="background: linear-gradient(135deg, #a855f7, #6366f1);">บันทึกรายการลง Sheet</button>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn" style="background: linear-gradient(135deg, #a855f7, #6366f1);">ยืนยันทำรายการ</button>
       </form>
     </div>
 
   </div>
 
-  <!-- Modal สำหรับ Log in Admin -->
+  <!-- Modal Login -->
   <div class="modal" id="loginModal">
     <div class="modal-content">
       <h2 style="margin-top:0; text-align: center; color: var(--accent-cyan);">🔐 เข้าสู่ระบบ Admin</h2>
       <form onsubmit="handleLogin(event)">
         <div class="form-group">
-          <label>ชื่อผู้ใช้งาน (Username):</label>
+          <label>Username:</label>
           <input type="text" id="adminUser" placeholder="Username" required>
         </div>
         <div class="form-group">
-          <label>รหัสผ่าน (Password):</label>
+          <label>Password:</label>
           <input type="password" id="adminPass" placeholder="Password" required>
         </div>
         <div style="display: flex; gap: 10px; margin-top: 20px;">
           <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
           <button type="button" class="btn" style="background: transparent; color: var(--text-muted);" onclick="toggleLoginModal()">ยกเลิก</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal สำหรับ Admin ปรับยอดเงินและสถานะ -->
-  <div class="modal" id="updatePaymentModal">
-    <div class="modal-content">
-      <h2 style="margin-top:0; text-align: center; color: var(--accent-purple);">✏️ ปรับปรุงยอดชำระเงิน</h2>
-      <form onsubmit="savePaymentUpdate(event)">
-        <input type="hidden" id="editInvoiceId">
-        <div class="form-group">
-          <label>ยอดรวมทั้งหมด (บาท):</label>
-          <input type="text" id="editTotalAmount" readonly style="opacity: 0.7;">
-        </div>
-        <div class="form-group">
-          <label>ระบุยอดที่ลูกค้าชำระแล้ว (บาท):</label>
-          <input type="number" id="editPaidAmount" placeholder="0.00" step="0.01" required>
-        </div>
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="submit" class="btn btn-primary" style="background: var(--accent-purple);">บันทึกอัปเดต</button>
-          <button type="button" class="btn" style="background: transparent; color: var(--text-muted);" onclick="closePaymentModal()">ยกเลิก</button>
         </div>
       </form>
     </div>
@@ -260,23 +246,48 @@
       }
     }
 
-    // บันทึกรายการใหม่
+    // เปลี่ยนแปลงฟิลด์ตามการเลือก (เพิ่ม / อัปเดต / ลด)
+    function handleActionTypeChange() {
+      const type = document.getElementById("actionType").value;
+      const invoiceIdGroup = document.getElementById("invoiceIdGroup");
+      const customerNameGroup = document.getElementById("customerNameGroup");
+      const totalAmountGroup = document.getElementById("totalAmountGroup");
+      const amountLabel = document.getElementById("amountLabel");
+
+      if (type === "add") {
+        invoiceIdGroup.style.display = "none";
+        customerNameGroup.style.display = "block";
+        totalAmountGroup.style.display = "block";
+        amountLabel.innerText = "จำนวนเงินที่จ่ายเริ่มต้น (บาท):";
+      } else if (type === "update") {
+        invoiceIdGroup.style.display = "block";
+        customerNameGroup.style.display = "none";
+        totalAmountGroup.style.display = "none";
+        amountLabel.innerText = "ยอดเงินที่ชำระเพิ่ม (บาท):";
+      } else if (type === "deduct") {
+        invoiceIdGroup.style.display = "block";
+        customerNameGroup.style.display = "none";
+        totalAmountGroup.style.display = "none";
+        amountLabel.innerText = "จำนวนเงินที่ต้องการลด (บาท):";
+      }
+    }
+
+    // Submit Form
     document.getElementById("billingForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const btn = document.getElementById("submitBtn");
-      btn.innerText = "กำลังบันทึกข้อมูล...";
-      btn.disabled = true;
-      notify("กำลังส่งข้อมูลไปยัง Google Sheets...", "info");
+      const actionType = document.getElementById("actionType").value;
 
-      const paid = parseFloat(document.getElementById("amount").value) || 0;
-      const total = parseFloat(document.getElementById("totalAmount").value) || 0;
-      const initialStatus = paid >= total ? "Paid" : "Pending";
+      btn.innerText = "กำลังประมวลผล...";
+      btn.disabled = true;
+      notify("กำลังส่งข้อมูลไปยังระบบ...", "info");
 
       const payload = {
-        customerName: document.getElementById("customerName").value,
-        amount: paid,
-        totalAmount: total,
-        status: initialStatus
+        actionType: actionType,
+        invoiceId: document.getElementById("invoiceId").value.trim(),
+        customerName: document.getElementById("customerName").value.trim(),
+        amount: parseFloat(document.getElementById("amount").value) || 0,
+        totalAmount: parseFloat(document.getElementById("totalAmount").value) || 0
       };
 
       fetch(WEB_APP_URL, {
@@ -285,12 +296,13 @@
         body: JSON.stringify(payload)
       })
       .then(() => {
-        notify("ยืนยันการบันทึกข้อมูลเรียบร้อยแล้ว!", "success");
+        notify("ทำรายการสำเร็จเรียบร้อยแล้ว!", "success");
         document.getElementById("billingForm").reset();
+        handleActionTypeChange();
       })
       .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
       .finally(() => {
-        btn.innerText = "บันทึกรายการลง Sheet";
+        btn.innerText = "ยืนยันทำรายการ";
         btn.disabled = false;
       });
     });
@@ -307,37 +319,31 @@
 
       btn.innerText = "กำลังค้นหาข้อมูล...";
       btn.disabled = true;
-      notify("กำลังค้นหาข้อมูลยอดค้างชำระ...", "info");
+      notify("กำลังค้นหาข้อมูล...", "info");
 
       fetch(WEB_APP_URL)
         .then(res => res.json())
         .then(data => {
           const tableBody = document.getElementById("resultTableBody");
           tableBody.innerHTML = "";
-          let totalRemaining = 0;
+          let totalPending = 0;
           let matchCount = 0;
 
           data.forEach(item => {
             if (item.Customer_Name && item.Customer_Name.toString().toLowerCase().includes(searchName)) {
               matchCount++;
               const row = document.createElement("tr");
-              
-              const totalAmount = parseFloat(item.Total_Amount) || 0;
-              const paidAmount = parseFloat(item.Amount) || 0;
-              const remaining = Math.max(0, totalAmount - paidAmount);
+              const paid = parseFloat(item.Amount) || 0;
+              const total = parseFloat(item.Total_Amount) || 0;
+              const pending = Math.max(0, total - paid);
 
-              totalRemaining += remaining;
-
-              const actionBtn = isAdminLoggedIn 
-                ? `<button class="btn-action" onclick="openPaymentModal('${item.Invoice_ID}', ${totalAmount}, ${paidAmount})">✏️ ปรับยอด</button>`
-                : `<span style="font-size:11px; color:var(--text-muted);">-</span>`;
+              totalPending += pending;
 
               row.innerHTML = `
+                <td style="font-size:12px; color:var(--accent-cyan);">${item.Invoice_ID || '-'}</td>
                 <td>${item.Customer_Name}</td>
-                <td>${totalAmount.toLocaleString()} ฿</td>
-                <td class="text-paid">${paidAmount.toLocaleString()} ฿</td>
-                <td class="${remaining > 0 ? 'text-pending' : 'text-paid'}">${remaining.toLocaleString()} ฿</td>
-                <td>${actionBtn}</td>
+                <td style="color:var(--accent-green);">${paid.toLocaleString()} ฿</td>
+                <td>${total.toLocaleString()} ฿</td>
               `;
               tableBody.appendChild(row);
             }
@@ -348,7 +354,7 @@
             document.getElementById("resultArea").style.display = "none";
           } else {
             notify(`ค้นพบข้อมูล ${matchCount} รายการ`, "success");
-            document.getElementById("totalPendingBox").innerText = "รวมยอดคงเหลือค้างชำระ: " + totalRemaining.toLocaleString() + " บาท";
+            document.getElementById("totalPendingBox").innerText = "ยอดค้างชำระรวม: " + totalPending.toLocaleString() + " บาท";
             document.getElementById("resultArea").style.display = "block";
           }
         })
@@ -357,45 +363,6 @@
           btn.innerText = "ค้นหายอดค้างชำระ";
           btn.disabled = false;
         });
-    }
-
-    // Modal ปรับยอดเงิน Admin
-    function openPaymentModal(invoiceId, totalAmount, paidAmount) {
-      document.getElementById("editInvoiceId").value = invoiceId;
-      document.getElementById("editTotalAmount").value = totalAmount.toLocaleString() + " บาท";
-      document.getElementById("editPaidAmount").value = paidAmount;
-      document.getElementById("updatePaymentModal").style.display = "flex";
-    }
-
-    function closePaymentModal() {
-      document.getElementById("updatePaymentModal").style.display = "none";
-    }
-
-    function savePaymentUpdate(e) {
-      e.preventDefault();
-      const invoiceId = document.getElementById("editInvoiceId").value;
-      const totalAmount = parseFloat(document.getElementById("editTotalAmount").value.replace(/[^0-9.-]+/g,""));
-      const newPaidAmount = parseFloat(document.getElementById("editPaidAmount").value) || 0;
-      const newStatus = newPaidAmount >= totalAmount ? "Paid" : "Pending";
-
-      notify("กำลังบันทึกอัปเดตยอดเงิน...", "info");
-
-      fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          action: "updatePayment",
-          invoiceId: invoiceId,
-          paidAmount: newPaidAmount,
-          newStatus: newStatus
-        })
-      })
-      .then(() => {
-        notify("ยืนยันการปรับปรุงยอดชำระเงินสำเร็จ!", "success");
-        closePaymentModal();
-        checkBalance(); // โหลดหน้าตารางใหม่ทันที
-      })
-      .catch(err => notify("อัปเดตไม่สำเร็จ: " + err, "warning"));
     }
   </script>
 </body>
