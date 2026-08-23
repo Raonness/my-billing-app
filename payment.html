@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Gateway - ระบบบันทึกการชำระเงิน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --accent-cyan: #38bdf8;
+      --accent-green: #22c55e;
+      --accent-red: #f43f5e;
+      --accent-purple: #a855f7;
+      --accent-orange: #f97316;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.25s ease; }
+    body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; padding: 20px 10px; margin: 0; display: flex; flex-direction: column; align-items: center; }
+
+    .container { width: 100%; max-width: 600px; }
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .top-bar h1 { font-size: 22px; margin: 0; background: linear-gradient(to right, #22c55e, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .form-group { margin-bottom: 18px; }
+    label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
+    input, select {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--accent-green); box-shadow: 0 0 12px rgba(34, 197, 94, 0.3); }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 15px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-pay { background: linear-gradient(135deg, #16a34a, #059669); color: white; box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4); }
+    .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22, 163, 74, 0.6); }
+    .btn-nav { background: rgba(255, 255, 255, 0.1); color: var(--text-main); text-decoration: none; padding: 8px 16px; border-radius: 10px; font-size: 14px; border: 1px solid var(--glass-border); }
+    .btn-bulk { background: linear-gradient(135deg, #f97316, #ea580c); color: white; margin-bottom: 20px; }
+
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: #1e293b; border: 1px solid var(--glass-border); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
+
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+    .toast { min-width: 250px; padding: 14px 20px; border-radius: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--glass-border); color: white; font-size: 14px; backdrop-filter: blur(10px); }
+    .toast.success { border-left: 4px solid var(--accent-green); }
+    .toast.warning { border-left: 4px solid var(--accent-red); }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="container">
+    <div class="top-bar">
+      <h1>💳 ระบบชำระเงิน (Admin)</h1>
+      <a href="index.html" class="btn-nav">🔍 ไปหน้าเช็กยอด</a>
+    </div>
+
+    <div class="card" id="adminPanel">
+      <button class="btn btn-bulk" id="bulkBtn" onclick="bulkAdd10()">⚡ ➕ เพิ่มตั้งหนี้ +10 บาทให้ทุกคน</button>
+
+      <form id="paymentForm">
+        <div class="form-group">
+          <label style="color: var(--accent-cyan); font-weight: 600;">เลือกการทำรายการ:</label>
+          <select id="actionType" onchange="handleActionTypeChange()">
+            <option value="update">🔵 ชำระเงิน (Payment - ลดยอดค้าง)</option>
+            <option value="add">🟢 เพิ่มรายการตั้งหนี้ใหม่ (New Charge)</option>
+            <option value="deduct">🔴 เพิ่มยอดค้างเฉพาะราย (Additional Charge)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>ชื่อลูกค้า:</label>
+          <input type="text" id="customerName" placeholder="ระบุชื่อลูกค้า" required>
+        </div>
+
+        <div class="form-group">
+          <label id="amountLabel">จำนวนเงินที่ชำระเข้ามา (บาท):</label>
+          <input type="number" id="amount" placeholder="0.00" step="0.01" required>
+        </div>
+
+        <button type="submit" class="btn btn-pay" id="submitBtn">บันทึกการทำรายการ</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
+
+    function notify(message, type = 'info') {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = `toast ${type}`;
+      let icon = type === 'success' ? '✅' : '⚠️';
+      toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function handleActionTypeChange() {
+      const type = document.getElementById("actionType").value;
+      const amountLabel = document.getElementById("amountLabel");
+
+      if (type === "update") {
+        amountLabel.innerText = "จำนวนเงินที่ชำระเข้ามา (ลดยอดค้าง):";
+      } else if (type === "add") {
+        amountLabel.innerText = "จำนวนเงินยอดค้างตั้งต้น (บาท):";
+      } else if (type === "deduct") {
+        amountLabel.innerText = "จำนวนเงินที่ต้องการตั้งหนี้เพิ่ม:";
+      }
+    }
+
+    function bulkAdd10() {
+      if (!confirm("⚠️ ยืนยันการบันทึกรายการเพิ่มหนี้ +10 บาทให้ทุกคนใช่หรือไม่?")) return;
+
+      const bulkBtn = document.getElementById("bulkBtn");
+      bulkBtn.innerText = "⏳ กำลังบันทึกรายการ +10 ให้ทุกคน...";
+      bulkBtn.disabled = true;
+
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ actionType: "bulkAdd10" })
+      })
+      .then(() => notify("เพิ่มรายการ +10 บาทให้ทุกคนสำเร็จ!", "success"))
+      .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
+      .finally(() => {
+        bulkBtn.innerText = "⚡ ➕ เพิ่มตั้งหนี้ +10 บาทให้ทุกคน";
+        bulkBtn.disabled = false;
+      });
+    }
+
+    document.getElementById("paymentForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const btn = document.getElementById("submitBtn");
+
+      btn.innerText = "กำลังบันทึก...";
+      btn.disabled = true;
+
+      const payload = {
+        actionType: document.getElementById("actionType").value,
+        customerName: document.getElementById("customerName").value.trim(),
+        amount: parseFloat(document.getElementById("amount").value) || 0
+      };
+
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        notify("บันทึกรายการสำเร็จแล้ว!", "success");
+        document.getElementById("paymentForm").reset();
+        handleActionTypeChange();
+      })
+      .catch(err => notify("เกิดข้อผิดพลาด: " + err, "warning"))
+      .finally(() => {
+        btn.innerText = "บันทึกการทำรายการ";
+        btn.disabled = false;
+      });
+    });
+  </script>
+</body>
+</html>
