@@ -200,7 +200,7 @@
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
-    const PROMPTPAY_NUMBER = "00466601694999"; // ⚠️ กรุณาเปลี่ยนเป็นเบอร์พร้อมเพย์ หรือเลขประจำตัวผู้เสียภาษีของคุณ
+    const PROMPTPAY_NUMBER = "004666016949996"; // PromptPay ID 15 หลัก
     let currentTotalPending = 0;
 
     function showLoader(text = "กำลังโหลด...") {
@@ -280,7 +280,7 @@
         .finally(() => hideLoader());
     }
 
-    // ฟังก์ชันเปิด QR Modal
+    // ฟังก์ชันเปิด QR Modal (ปรับใช้ API จาก ppqr.io เพื่อรองรับ e-Wallet/PromptPay ID 15 หลัก)
     function showQrModal(customerName, amount) {
       if (!amount || amount <= 0) {
         notify("ยอดเงินต้องมากกว่า 0 บาทเพื่อสร้าง QR Code", false);
@@ -289,8 +289,8 @@
       document.getElementById("modalCustomerName").innerText = customerName || "ไม่ระบุชื่อ";
       document.getElementById("modalAmountDisplay").innerText = parseFloat(amount).toLocaleString(undefined, {minimumFractionDigits: 2});
       
-      // ดึง QR Code ผ่าน PromptPay API (PromptPay.io)
-      const qrApiUrl = `https://promptpay.io/${PROMPTPAY_NUMBER}/${amount}.png`;
+      // ดึง QR Code ผ่าน API ppqr.io ที่รองรับ PromptPay ID 15 หลัก
+      const qrApiUrl = `https://ppqr.io/api/image?id=${PROMPTPAY_NUMBER}&amount=${amount}`;
       document.getElementById("qrImage").src = qrApiUrl;
       document.getElementById("qrModal").style.display = "flex";
     }
