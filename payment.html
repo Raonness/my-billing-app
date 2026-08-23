@@ -220,17 +220,34 @@
 
     document.getElementById("adminActionForm")?.addEventListener("submit", function(e) {
       e.preventDefault();
+
+      // ดึงข้อมูลที่กรอกมาเพื่อแสดงใน Popup ยืนยัน
+      const actionTypeElement = document.getElementById("actionType");
+      const actionText = actionTypeElement.options[actionTypeElement.selectedIndex].text;
+      const customerName = document.getElementById("customerName").value.trim();
+      const amount = document.getElementById("amount").value;
+
+      // แสดง Popup ยืนยัน (ตกลง / ยกเลิก) ก่อนบันทึก
+      const confirmMessage = `⚠️ กรุณายืนยันการทำรายการ\n\n🔹 รูปแบบ: ${actionText}\n👤 ลูกค้า: ${customerName}\n💰 จำนวนเงิน: ${amount} บาท\n\nคุณต้องการบันทึกข้อมูลนี้ใช่หรือไม่?`;
+      
+      if (!confirm(confirmMessage)) {
+        return; // ยกเลิกการทำงานหากกด Cancel
+      }
+
       showLoader("กำลังบันทึกข้อมูล...");
 
       fetch(WEB_APP_URL, {
         method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
-          actionType: document.getElementById("actionType").value,
-          customerName: document.getElementById("customerName").value.trim(),
-          amount: parseFloat(document.getElementById("amount").value) || 0
+          actionType: actionTypeElement.value,
+          customerName: customerName,
+          amount: parseFloat(amount) || 0
         })
       })
-      .then(() => { notify("บันทึกรายการสำเร็จ!"); document.getElementById("adminActionForm").reset(); })
+      .then(() => { 
+        notify("บันทึกรายการสำเร็จ!"); 
+        document.getElementById("adminActionForm").reset(); 
+      })
       .catch(() => notify("บันทึกข้อมูลไม่สำเร็จ", false))
       .finally(() => hideLoader());
     });
