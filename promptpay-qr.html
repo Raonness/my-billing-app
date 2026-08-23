@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PromptPay QR Payment - ระบบชำระเงินผ่านคิวอาร์โค้ด</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --accent-cyan: #38bdf8;
+      --accent-green: #22c55e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.25s ease; }
+    body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; padding: 20px 10px; margin: 0; display: flex; flex-direction: column; align-items: center; }
+
+    .container { width: 100%; max-width: 450px; }
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      text-align: center;
+    }
+
+    .form-group { margin-bottom: 18px; text-align: left; }
+    label { display: block; margin-bottom: 6px; font-size: 14px; color: var(--text-muted); }
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 15px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: white;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+      margin-top: 10px;
+    }
+
+    .qr-container {
+      background: #ffffff;
+      padding: 15px;
+      border-radius: 16px;
+      display: inline-block;
+      margin: 20px 0 10px 0;
+    }
+    .qr-container img { width: 200px; height: 200px; display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+      <h2 style="margin-top:0; color: var(--accent-cyan); font-size: 20px;">📱 สแกนจ่ายด้วย PromptPay</h2>
+      
+      <div class="form-group">
+        <label>ระบุเบอร์พร้อมเพย์ / เลขผู้เสียภาษี:</label>
+        <input type="text" id="ppAccount" placeholder="เช่น 0812345678" value="0812345678">
+      </div>
+
+      <div class="form-group">
+        <label>จำนวนเงินที่ต้องชำระ (บาท):</label>
+        <input type="number" id="payAmount" placeholder="0.00" step="0.01">
+      </div>
+
+      <button class="btn" onclick="generateQR()">สร้าง QR Code ชำระเงิน</button>
+
+      <div id="qrArea" style="display: none;">
+        <div class="qr-container">
+          <img id="qrImage" src="" alt="PromptPay QR Code">
+        </div>
+        <p style="font-size: 14px; color: var(--accent-green); margin-mop: 5px;">
+          สแกนผ่านแอปธนาคารเพื่อชำระเงิน
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // อ่านค่า ยอดเงิน และ ชื่อ จาก URL Parameter กรณีส่งต่อมาจากหน้า index.html
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const amountParam = urlParams.get('amount');
+      if (amountParam) {
+        document.getElementById('payAmount').value = amountParam;
+        generateQR();
+      }
+    };
+
+    function generateQR() {
+      const account = document.getElementById('ppAccount').value.trim();
+      const amount = parseFloat(document.getElementById('payAmount').value) || 0;
+
+      if (!account) {
+        alert("กรุณาระบุหมายเลขพร้อมเพย์");
+        return;
+      }
+      if (amount <= 0) {
+        alert("กรุณาระบุจำนวนเงินที่ถูกต้อง");
+        return;
+      }
+
+      // ดึง QR Code ผ่าน PromptPay API Generator (PromptPay.io API)
+      const qrApiUrl = `https://promptpay.io/${account}/${amount}.png`;
+      
+      document.getElementById('qrImage').src = qrApiUrl;
+      document.getElementById('qrArea').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
