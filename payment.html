@@ -60,7 +60,7 @@
 
   <div class="container">
     
-    <!-- 🔒 1. หน้า Login เข้าสู่ระบบ -->
+    <!-- 🔒 1. หน้า Login -->
     <div class="card" id="loginCard" style="max-width: 380px; margin: 80px auto;">
       <h2 style="margin-top:0; text-align:center; color: var(--sea-foam);">🔒 Admin Login</h2>
       <form id="loginForm">
@@ -84,7 +84,7 @@
 
       <!-- รายการรอยืนยัน -->
       <div class="card">
-        <h2 style="margin-top:0; font-size: 17px; color: var(--sea-cyan);">⏳ รายการแจ้งชำระเงินที่รอการอนุมัติ</h2>
+        <h2 style="margin-top:0; font-size: 17px; color: var(--sea-cyan);">⏳ รายการแจ้งชำระเงินที่รอการอนุมัติ (ล่าสุดอยู่บน)</h2>
         <table>
           <thead>
             <tr>
@@ -133,7 +133,7 @@
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
-    const ADMIN_PASS = "Project I"; // 🔑 รหัสผ่านเข้าสู่ระบบ
+    const ADMIN_PASS = "Project I";
 
     function notify(msg, ok = true) {
       const c = document.getElementById("toastContainer");
