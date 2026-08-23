@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบผู้ดูแล - อนุมัติการชำระเงิน</title>
+  <title>ระบบผู้ดูแล - อนุมัติและจัดการยอดเงิน</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -15,7 +15,7 @@
     body { background: var(--sea-deep); color: var(--text-light); min-height: 100vh; margin: 0; padding: 25px 15px; }
     .container { max-width: 950px; margin: 0 auto; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-    .header h1 { font-size: 24px; margin: 0; color: var(--sea-foam); }
+    .header h1 { font-size: 22px; margin: 0; color: var(--sea-foam); }
     .btn-back { background: rgba(255,255,255,0.1); color: var(--sea-foam); text-decoration: none; padding: 8px 16px; border-radius: 12px; font-size: 14px; border: 1px solid var(--glass-border); }
     
     .card {
@@ -23,6 +23,18 @@
       border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); margin-bottom: 25px;
     }
+
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--sea-foam); }
+    input {
+      width: 100%; padding: 10px 14px; background: rgba(10, 37, 64, 0.75);
+      border: 1px solid var(--glass-border); border-radius: 10px; color: white; font-size: 14px; outline: none;
+    }
+
+    .btn-action { width: 100%; padding: 10px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 13px; }
+    .btn-add { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; }
+    .btn-sub { background: linear-gradient(135deg, #e11d48, #be123c); color: white; }
+    .btn-bulk { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; font-weight: 700; }
 
     table { width: 100%; border-collapse: collapse; font-size: 14px; }
     th { text-align: left; padding: 12px 10px; color: var(--sea-foam); border-bottom: 1px solid var(--glass-border); }
@@ -58,10 +70,35 @@
 
   <div class="container">
     <div class="header">
-      <h1>🔒 ระบบผู้ดูแล: อนุมัติสลิปและรายการชำระเงิน</h1>
+      <h1>🔒 ระบบผู้ดูแล: จัดการยอดเงินและอนุมัติสลิป</h1>
       <a href="index.html" class="btn-back">⬅️ กลับหน้าหลัก</a>
     </div>
 
+    <!-- 🛠️ แผงควบคุมเพิ่ม/ลด ยอดเงิน -->
+    <div class="card">
+      <h2 style="margin-top:0; font-size: 18px; color: var(--sand-gold);">⚙️ แผงควบคุมจัดการยอดเงินลูกค้า</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="form-group">
+          <label>ชื่อลูกค้า:</label>
+          <input type="text" id="adminCustomerName" placeholder="ระบุชื่อลูกค้า...">
+        </div>
+        <div class="form-group">
+          <label>จำนวนเงิน (บาท):</label>
+          <input type="number" id="adminAmount" placeholder="0.00" step="0.01">
+        </div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 5px;">
+        <button class="btn-action btn-add" onclick="submitAdminAction('add')">➕ เพิ่มยอด/ตั้งหนี้ลูกค้า</button>
+        <button class="btn-action btn-sub" onclick="submitAdminAction('deduct')">➖ ปรับลดยอดเงิน</button>
+      </div>
+
+      <div style="margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 15px;">
+        <button class="btn-action btn-bulk" onclick="submitBulkAdd()">🚀 บวก +10 บาท ให้ลูกค้าทุกคนในระบบ</button>
+      </div>
+    </div>
+
+    <!-- ⏳ ตารางรายการรออนุมัติ -->
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
         <h2 style="margin:0; font-size: 18px; color: var(--sea-cyan);">⏳ รายการรอการอนุมัติ (Pending Verification)</h2>
@@ -85,8 +122,9 @@
       </div>
     </div>
 
+    <!-- 📜 ตารางประวัติรายการ -->
     <div class="card">
-      <h2 style="margin-top:0; font-size: 18px; color: var(--sea-foam); margin-bottom: 15px;">📜 ประวัติการอนุมัติ / ปฏิเสธ ล่าสุด</h2>
+      <h2 style="margin-top:0; font-size: 18px; color: var(--sea-foam); margin-bottom: 15px;">📜 ประวัติการทำรายการล่าสุด</h2>
       <div style="overflow-x:auto;">
         <table>
           <thead>
@@ -122,6 +160,7 @@
       setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
     }
 
+    // 🖼️ ปุ่มแสดงสลิป
     function getSlipLinkHTML(item) {
       let url = "";
       Object.keys(item).forEach(key => {
@@ -137,6 +176,61 @@
       return `<span class="no-slip">ไม่มีสลิป</span>`;
     }
 
+    // ➕/➖ ทำรายการเพิ่ม/ลด ยอดเงิน
+    function submitAdminAction(actionType) {
+      const customerName = document.getElementById("adminCustomerName").value.trim();
+      const amount = parseFloat(document.getElementById("adminAmount").value) || 0;
+
+      if (!customerName) return notify("กรุณากรอกชื่อลูกค้า", false);
+      if (amount <= 0) return notify("กรุณากรอกจำนวนเงินให้ถูกต้อง", false);
+
+      const actionText = actionType === 'add' ? 'เพิ่มยอดตั้งหนี้' : 'ปรับลดยอด';
+      showLoader(`กำลัง${actionText}...`);
+
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ actionType: actionType, customerName: customerName, amount: amount })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          notify(`ทำรายการ ${actionText} สำเร็จ`);
+          document.getElementById("adminCustomerName").value = "";
+          document.getElementById("adminAmount").value = "";
+          loadData();
+        } else {
+          notify("เกิดข้อผิดพลาด: " + (data.message || ""), false);
+        }
+      })
+      .catch(() => notify("ไม่สามารถเชื่อมต่อระบบได้", false))
+      .finally(() => hideLoader());
+    }
+
+    // 🚀 บวก +10 ทุกคน
+    function submitBulkAdd() {
+      if (!confirm("คุณต้องการเพิ่มยอด +10 บาท ให้ลูกค้าทุกคนในระบบใช่หรือไม่?")) return;
+      showLoader("กำลังเพิ่มยอด +10 ให้ลูกค้าทุกคน...");
+
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ actionType: "bulkAdd10" })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          notify("เพิ่มยอด +10 บาท ให้ลูกค้าทุกคนเรียบร้อยแล้ว");
+          loadData();
+        } else {
+          notify("เกิดข้อผิดพลาดในการทำรายการ", false);
+        }
+      })
+      .catch(() => notify("ไม่สามารถเชื่อมต่อระบบได้", false))
+      .finally(() => hideLoader());
+    }
+
+    // 🔄 โหลดข้อมูลตาราง
     function loadData() {
       showLoader("กำลังดึงข้อมูลล่าสุด...");
       fetch(WEB_APP_URL)
@@ -195,6 +289,7 @@
         .finally(() => hideLoader());
     }
 
+    // ✅/❌ อนุมัติหรือปฏิเสธ
     function handleAction(rowIndex, action) {
       const actionText = action === 'approve' ? 'อนุมัติ' : 'ปฏิเสธ';
       if (!confirm(`คุณต้องการ "${actionText}" รายการนี้ใช่หรือไม่?`)) return;
