@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>เริ่มต้นเที่ยวหัวหินกับพวกเรา - Huahin Ocean Service</title>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Library สำหรับสร้าง QR Code -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   
   <style>
@@ -16,6 +18,7 @@
     * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.3s ease; }
     body { background: var(--sea-deep); color: var(--text-light); min-height: 100vh; margin: 0; overflow-x: hidden; }
 
+    /* Loader Overlay */
     .loader-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(10, 37, 64, 0.85); backdrop-filter: blur(6px);
@@ -31,6 +34,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .loader-text { color: var(--sea-foam); font-size: 16px; font-weight: 500; letter-spacing: 1px; }
 
+    /* Welcome Page */
     #welcomePage {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: linear-gradient(rgba(10,37,64,0.4), rgba(10,37,64,0.75)), 
@@ -54,6 +58,7 @@
     .btn-start:hover { transform: scale(1.08); box-shadow: 0 0 35px rgba(144, 224, 239, 0.9); }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
+    /* Animations */
     .ocean-curtain {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(180deg, var(--sea-cyan), var(--sea-deep));
@@ -62,6 +67,7 @@
     }
     .ocean-curtain.active { transform: translateY(0%); opacity: 1; }
 
+    /* Main Content */
     #mainContent {
       display: none; opacity: 0; transition: opacity 0.8s ease; min-height: 100vh; padding: 30px 15px;
       background: linear-gradient(180deg, rgba(10,37,64,0.85) 0%, rgba(0,119,182,0.65) 100%),
@@ -97,6 +103,7 @@
     .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999999; }
     .toast { padding: 14px 20px; border-radius: 12px; background: rgba(10, 37, 64, 0.95); border: 1px solid var(--glass-border); color: white; font-size: 14px; margin-bottom: 10px; }
 
+    /* Modal ป๊อปอัป คิวอาร์โค้ด */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(8px); justify-content: center; align-items: center; z-index: 99999;
@@ -120,12 +127,14 @@
   <div class="ocean-curtain" id="oceanCurtain"></div>
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- Landing Page -->
   <div id="welcomePage">
     <h1 class="hero-title">หัวหินกับพวกเรา 🌊</h1>
     <p class="hero-subtitle">สัมผัสประสบการณ์สุดพิเศษ และจัดการข้อมูลบริการได้อย่างง่ายดาย</p>
     <button class="btn-start" onclick="startExperience()">เริ่มกันเลย</button>
   </div>
 
+  <!-- Main Content -->
   <div id="mainContent">
     <div class="container">
       <div class="top-bar">
@@ -164,18 +173,21 @@
             <input type="number" id="payAmount" placeholder="0.00" step="0.01" required>
           </div>
           <button type="button" class="btn btn-qr" style="margin-top: 0; margin-bottom: 10px;" onclick="openQrModalFromInput()">📱 เปิดสแกน QR Code ตามยอดเงินนี้</button>
-          <button type="submit" class="btn btn-success">✅ แจ้งโอนชำระเงิน</button>
+          <button type="submit" class="btn btn-success">ส่งข้อมูลแจ้งชำระเงิน</button>
         </form>
       </div>
     </div>
   </div>
 
+  <!-- Modal ป๊อปอัป คิวอาร์โค้ด PromptPay -->
   <div class="modal" id="qrModal">
     <div class="modal-content">
       <h3 style="margin-top:0; color: var(--sea-foam); font-size: 18px;">📱 สแกนจ่ายผ่าน PromptPay</h3>
       <p style="margin: 5px 0; font-size: 13px; color: #cbd5e1;">ชื่อลูกค้า: <b id="modalCustomerName" style="color:white;">-</b></p>
       
-      <div class="qr-box"><div id="qrCodeContainer"></div></div>
+      <div class="qr-box">
+        <div id="qrCodeContainer"></div>
+      </div>
 
       <div style="font-size: 20px; font-weight: 600; color: #86efac; margin-bottom: 15px;">
         ยอดชำระ: <span id="modalAmountDisplay">0.00</span> บาท
@@ -190,6 +202,7 @@
     const PROMPTPAY_NUMBER = "004666016949996"; 
     let currentTotalPending = 0;
 
+    // ฟังก์ชันสร้าง EMVCo Payload สำหรับ PromptPay ID 15 หลัก
     function generatePromptPayPayload(target, amount) {
       function sanitizeInput(input) { return input.replace(/[^0-9]/g, ''); }
       function formatField(id, value) { return id + ('0' + value.length).slice(-2) + value; }
@@ -206,9 +219,9 @@
       }
 
       const cleanTarget = sanitizeInput(target);
-      let targetType = '03';
-      if (cleanTarget.length === 10) targetType = '01';
-      else if (cleanTarget.length === 13) targetType = '02';
+      let targetType = '03'; // e-Wallet ID 15 หลัก
+      if (cleanTarget.length === 10) targetType = '01'; 
+      else if (cleanTarget.length === 13) targetType = '02'; 
 
       let targetFormatted = cleanTarget;
       if (targetType === '01') targetFormatted = '0066' + cleanTarget.substring(1);
@@ -273,7 +286,7 @@
               if (!isPending && status !== "Rejected") total += amt;
               const timeStr = item.Timestamp ? new Date(item.Timestamp).toLocaleString('th-TH') : '-';
 
-              let badge = `<span style="color:#f59e0b;">⏳ รอตรวจสอบ</span>`;
+              let badge = `<span style="color:#f59e0b;">⏳ รออนุมัติ</span>`;
               if (status === "Rejected") badge = `<span style="color:#f43f5e;">❌ ปฏิเสธ</span>`;
               else if (amt < 0) badge = `<span style="color:#22c55e;">✅ ชำระแล้ว</span>`;
               else if (!isPending) badge = `<span style="color:#38bdf8;">📌 ตั้งหนี้</span>`;
@@ -303,15 +316,23 @@
     }
 
     function showQrModal(customerName, amount) {
-      if (!amount || amount <= 0) return notify("ยอดเงินต้องมากกว่า 0 บาท", false);
+      if (!amount || amount <= 0) return notify("ยอดเงินต้องมากกว่า 0 บาทเพื่อสร้าง QR Code", false);
       document.getElementById("modalCustomerName").innerText = customerName || "ไม่ระบุชื่อ";
       document.getElementById("modalAmountDisplay").innerText = parseFloat(amount).toLocaleString(undefined, {minimumFractionDigits: 2});
       
       const container = document.getElementById("qrCodeContainer");
       container.innerHTML = ""; 
-      const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, amount);
       
-      new QRCode(container, { text: payload, width: 200, height: 200, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M });
+      const payload = generatePromptPayPayload(PROMPTPAY_NUMBER, amount);
+      new QRCode(container, {
+        text: payload,
+        width: 200,
+        height: 200,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.M
+      });
+
       document.getElementById("qrModal").style.display = "flex";
     }
 
@@ -321,7 +342,7 @@
 
     document.getElementById("clientPaymentForm").addEventListener("submit", function(e) {
       e.preventDefault();
-      showLoader("กำลังบันทึกข้อมูล...");
+      showLoader("กำลังส่งข้อมูลแจ้งชำระเงิน...");
 
       fetch(WEB_APP_URL, {
         method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -332,10 +353,14 @@
         })
       })
       .then(r => r.json())
-      .then((data) => {
-        notify(data.message || "แจ้งชำระเงินเรียบร้อยแล้ว (รอแอดมินตรวจสอบ)");
-        document.getElementById("clientPaymentForm").reset();
-        if (document.getElementById("searchName").value.trim()) checkBalance();
+      .then(data => {
+        if (data.status === "success") {
+          notify("แจ้งชำระเงินเรียบร้อยแล้ว! (รอผู้ดูแลระบบตรวจสอบ)");
+          document.getElementById("clientPaymentForm").reset();
+          if (document.getElementById("searchName").value.trim()) checkBalance();
+        } else {
+          notify("เกิดข้อผิดพลาด: " + (data.message || ""), false);
+        }
       })
       .catch(() => notify("ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่", false))
       .finally(() => hideLoader());
