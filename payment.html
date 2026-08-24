@@ -47,12 +47,16 @@
     .btn-approve { background: linear-gradient(135deg, #16a34a, #15803d); color: white; padding: 8px 12px; border-radius: 8px; }
     .btn-reject { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 8px 12px; border-radius: 8px; }
     .btn-slip { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; text-decoration: none; }
+    .btn-page { background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: white; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    .btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .table-responsive { overflow-x: auto; margin-top: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
     table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 14px; }
     th { text-align: left; padding: 15px 12px; background: rgba(255,255,255,0.05); color: var(--sea-cyan); }
     td { padding: 15px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
     .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; border: 1px solid; }
+
+    .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 5px; }
 
     .loader-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; pointer-events: none; }
     .loader-overlay.active { opacity: 1; pointer-events: auto; }
@@ -114,6 +118,11 @@
           <tbody id="pendingTable"></tbody>
         </table>
       </div>
+      <div class="pagination-bar" id="pendPagination">
+        <button class="btn-page" id="pendPrevBtn" onclick="changePendPage(-1)">◀️ ก่อนหน้า</button>
+        <span id="pendPageInfo" style="color:var(--sea-foam); font-size:13px;">หน้า 1 / 1</span>
+        <button class="btn-page" id="pendNextBtn" onclick="changePendPage(1)">ถัดไป ▶️</button>
+      </div>
     </div>
 
     <div class="card">
@@ -124,13 +133,24 @@
           <tbody id="historyTable"></tbody>
         </table>
       </div>
+      <div class="pagination-bar" id="histPagination">
+        <button class="btn-page" id="histPrevBtn" onclick="changeHistPage(-1)">◀️ ก่อนหน้า</button>
+        <span id="histPageInfo" style="color:var(--sea-foam); font-size:13px;">หน้า 1 / 1</span>
+        <button class="btn-page" id="histNextBtn" onclick="changeHistPage(1)">ถัดไป ▶️</button>
+      </div>
     </div>
   </div>
 
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
     
-    // 🔐 กำหนดรหัสผ่านเข้าใช้งานเป็น Admin1123
+    // pagination state
+    let pendingData = [];
+    let historyData = [];
+    let pendingPage = 1;
+    let historyPage = 1;
+    const ITEMS_PER_PAGE = 10;
+
     function checkLogin() {
       const pwd = document.getElementById("adminPassword").value;
       if(pwd === "Admin1123") { 
@@ -194,7 +214,6 @@
       }).catch(()=>notify("❌ เชื่อมต่อหลังบ้านล้มเหลว", false)).finally(()=>hideLoader());
     }
 
-    // ระบบรับเงินสด (ใช้ actionType: "add" พร้อมส่งค่ายอดติดลบ ทำงานร่วมกับ Code.gs เดิมได้ทันที)
     function submitCashPayment() {
       const name = document.getElementById("adminCustomerName").value.trim();
       const amt = parseFloat(document.getElementById("adminAmount").value)||0;
@@ -226,36 +245,104 @@
     function loadData() {
       showLoader();
       fetch(WEB_APP_URL).then(r=>r.json()).then(data => {
-        const pTable = document.getElementById("pendingTable"); const hTable = document.getElementById("historyTable");
-        pTable.innerHTML = ""; hTable.innerHTML = ""; let pCount = 0;
+        pendingData = [];
+        historyData = [];
         data.forEach(item => {
-          const stat = extractStatus(item); 
-          const amt = extractAmount(item);
-          const name = extractName(item);
-          const slip = getSlipLinkHTML(item);
-          const invId = getItemVal(item, ["Invoice_ID", "Invoice ID", "Col_0"]) || '-';
-
+          const stat = extractStatus(item);
           if(stat === "Pending Verification") {
-            pCount++;
-            pTable.innerHTML += `<tr><td style="color:#94a3b8; font-size:12px;">${invId}</td>
-              <td style="font-weight:bold;">${name}</td>
-              <td style="color:#86efac; font-weight:bold;">${Math.abs(amt).toLocaleString()} ฿</td>
-              <td>${slip}</td>
-              <td>
-                <button class="btn btn-approve" onclick="handleAction(${item.rowIndex}, 'approve')">อนุมัติ</button>
-                <button class="btn btn-reject" onclick="handleAction(${item.rowIndex}, 'reject')">ปฏิเสธ</button>
-              </td></tr>`;
+            pendingData.push(item);
           } else {
-            let bdg = `<span class="badge" style="color:#4ade80; border-color:#4ade80; background:rgba(74,222,128,0.1);">✅ อนุมัติแล้ว</span>`;
-            if(stat==="Rejected") bdg = `<span class="badge" style="color:#f87171; border-color:#f87171; background:rgba(248,113,113,0.1);">❌ ปฏิเสธ</span>`;
-            else if(amt<0) bdg = `<span class="badge" style="color:#34d399; border-color:#34d399; background:rgba(52,211,153,0.1);">💵 ชำระแล้ว / เงินสด</span>`;
-            else if(amt>0) bdg = `<span class="badge" style="color:#38bdf8; border-color:#38bdf8; background:rgba(56,189,248,0.1);">📌 ตั้งหนี้</span>`;
-            
-            hTable.innerHTML += `<tr><td style="color:#94a3b8; font-size:12px;">${invId}</td><td>${name}</td><td style="font-weight:bold;">${amt.toLocaleString()} ฿</td><td>${bdg}</td><td>${slip}</td></tr>`;
+            historyData.push(item);
           }
         });
-        if(pCount===0) pTable.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">ไม่มีรายการรอตรวจสอบ ✨</td></tr>`;
+        pendingPage = 1;
+        historyPage = 1;
+        renderPendingTable();
+        renderHistoryTable();
       }).finally(()=>hideLoader());
+    }
+
+    function renderPendingTable() {
+      const pTable = document.getElementById("pendingTable");
+      pTable.innerHTML = "";
+      if(pendingData.length === 0) {
+        pTable.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">ไม่มีรายการรอตรวจสอบ ✨</td></tr>`;
+        document.getElementById("pendPagination").style.display = "none";
+        return;
+      }
+      document.getElementById("pendPagination").style.display = "flex";
+      const totalPages = Math.ceil(pendingData.length / ITEMS_PER_PAGE) || 1;
+      const start = (pendingPage - 1) * ITEMS_PER_PAGE;
+      const pageItems = pendingData.slice(start, start + ITEMS_PER_PAGE);
+
+      pageItems.forEach(item => {
+        const amt = extractAmount(item);
+        const name = extractName(item);
+        const slip = getSlipLinkHTML(item);
+        const invId = getItemVal(item, ["Invoice_ID", "Invoice ID", "Col_0"]) || '-';
+
+        pTable.innerHTML += `<tr><td style="color:#94a3b8; font-size:12px;">${invId}</td>
+          <td style="font-weight:bold;">${name}</td>
+          <td style="color:#86efac; font-weight:bold;">${Math.abs(amt).toLocaleString()} ฿</td>
+          <td>${slip}</td>
+          <td>
+            <button class="btn btn-approve" onclick="handleAction(${item.rowIndex}, 'approve')">อนุมัติ</button>
+            <button class="btn btn-reject" onclick="handleAction(${item.rowIndex}, 'reject')">ปฏิเสธ</button>
+          </td></tr>`;
+      });
+
+      document.getElementById("pendPageInfo").innerText = `หน้า ${pendingPage} / ${totalPages} (${pendingData.length} รายการ)`;
+      document.getElementById("pendPrevBtn").disabled = pendingPage <= 1;
+      document.getElementById("pendNextBtn").disabled = pendingPage >= totalPages;
+    }
+
+    function changePendPage(dir) {
+      const totalPages = Math.ceil(pendingData.length / ITEMS_PER_PAGE) || 1;
+      pendingPage += dir;
+      if(pendingPage < 1) pendingPage = 1;
+      if(pendingPage > totalPages) pendingPage = totalPages;
+      renderPendingTable();
+    }
+
+    function renderHistoryTable() {
+      const hTable = document.getElementById("historyTable");
+      hTable.innerHTML = "";
+      if(historyData.length === 0) {
+        hTable.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">ไม่มีประวัติรายการ 📜</td></tr>`;
+        document.getElementById("histPagination").style.display = "none";
+        return;
+      }
+      document.getElementById("histPagination").style.display = "flex";
+      const totalPages = Math.ceil(historyData.length / ITEMS_PER_PAGE) || 1;
+      const start = (historyPage - 1) * ITEMS_PER_PAGE;
+      const pageItems = historyData.slice(start, start + ITEMS_PER_PAGE);
+
+      pageItems.forEach(item => {
+        const stat = extractStatus(item);
+        const amt = extractAmount(item);
+        const name = extractName(item);
+        const slip = getSlipLinkHTML(item);
+        const invId = getItemVal(item, ["Invoice_ID", "Invoice ID", "Col_0"]) || '-';
+
+        let bdg = `<span class="badge" style="color:#4ade80; border-color:#4ade80; background:rgba(74,222,128,0.1);">✅ อนุมัติแล้ว</span>`;
+        if(stat==="Rejected") bdg = `<span class="badge" style="color:#f87171; border-color:#f87171; background:rgba(248,113,113,0.1);">❌ ปฏิเสธ</span>`;
+        else if(amt<0) bdg = `<span class="badge" style="color:#34d399; border-color:#34d399; background:rgba(52,211,153,0.1);">💵 ชำระแล้ว / เงินสด</span>`;
+        else if(amt>0) bdg = `<span class="badge" style="color:#38bdf8; border-color:#38bdf8; background:rgba(56,189,248,0.1);">📌 ตั้งหนี้</span>`;
+
+        hTable.innerHTML += `<tr><td style="color:#94a3b8; font-size:12px;">${invId}</td><td>${name}</td><td style="font-weight:bold;">${amt.toLocaleString()} ฿</td><td>${bdg}</td><td>${slip}</td></tr>`;
+      });
+
+      document.getElementById("histPageInfo").innerText = `หน้า ${historyPage} / ${totalPages} (${historyData.length} รายการ)`;
+      document.getElementById("histPrevBtn").disabled = historyPage <= 1;
+      document.getElementById("histNextBtn").disabled = historyPage >= totalPages;
+    }
+
+    function changeHistPage(dir) {
+      const totalPages = Math.ceil(historyData.length / ITEMS_PER_PAGE) || 1;
+      historyPage += dir;
+      if(historyPage < 1) historyPage = 1;
+      if(historyPage > totalPages) historyPage = totalPages;
+      renderHistoryTable();
     }
 
     function handleAction(rIdx, act) {
