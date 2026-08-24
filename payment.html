@@ -28,7 +28,7 @@
     .login-card input:focus { border-color: var(--sea-cyan); }
     .btn-login { width: 100%; padding: 15px; background: linear-gradient(135deg, var(--sea-blue), var(--sea-cyan)); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 700; cursor: pointer; }
 
-    #adminDashboard { display: none; opacity: 0; padding: 30px 15px; max-width: 1100px; margin: 0 auto; }
+    #adminDashboard { display: none; opacity: 0; padding: 30px 15px; max-width: 1150px; margin: 0 auto; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
     .header h1 { font-size: clamp(1.5rem, 4vw, 2rem); margin: 0; color: var(--sea-foam); text-shadow: 0 2px 10px rgba(144, 224, 239, 0.5); }
     
@@ -51,7 +51,7 @@
     .btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .table-responsive { overflow-x: auto; margin-top: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
-    table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; min-width: 750px; font-size: 14px; }
     th { text-align: left; padding: 15px 12px; background: rgba(255,255,255,0.05); color: var(--sea-cyan); }
     td { padding: 15px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
     .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; border: 1px solid; }
@@ -114,7 +114,16 @@
       <h2 style="margin-top:0; color: var(--sea-cyan); font-size: 1.2rem;">⏳ รอการอนุมัติสลิปโอนเงิน</h2>
       <div class="table-responsive">
         <table>
-          <thead><tr><th>เลขที่</th><th>ลูกค้า</th><th>ยอดโอน</th><th>หลักฐาน</th><th>จัดการ</th></tr></thead>
+          <thead>
+            <tr>
+              <th>เลขที่</th>
+              <th>วันที่/เวลา</th>
+              <th>ลูกค้า</th>
+              <th>ยอดโอน</th>
+              <th>หลักฐาน</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
           <tbody id="pendingTable"></tbody>
         </table>
       </div>
@@ -129,7 +138,16 @@
       <h2 style="margin-top:0; color: var(--sea-foam); font-size: 1.2rem;">📜 ประวัติรายการทั้งหมด</h2>
       <div class="table-responsive">
         <table>
-          <thead><tr><th>เลขที่</th><th>ลูกค้า</th><th>จำนวนเงิน</th><th>สถานะ</th><th>หลักฐาน</th></tr></thead>
+          <thead>
+            <tr>
+              <th>เลขที่</th>
+              <th>วันที่/เวลา</th>
+              <th>ลูกค้า</th>
+              <th>จำนวนเงิน</th>
+              <th>สถานะ</th>
+              <th>หลักฐาน</th>
+            </tr>
+          </thead>
           <tbody id="historyTable"></tbody>
         </table>
       </div>
@@ -144,7 +162,6 @@
   <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8fSQb8lgA8HORmgP5QJAXhoiX7wo4xb5_aAcJesetbPCztV34GjdqOoeN4ZERqtHg/exec";
     
-    // pagination state
     let pendingData = [];
     let historyData = [];
     let pendingPage = 1;
@@ -191,6 +208,19 @@
     function extractName(item) { return getItemVal(item, ["Customer_Name", "Customer Name", "Col_1"]).toString().trim(); }
     function extractAmount(item) { let a = parseFloat(getItemVal(item, ["Amount", "Col_2"])); return isNaN(a) ? 0 : a; }
     function extractStatus(item) { return getItemVal(item, ["Status", "Col_4"]).toString().trim(); }
+
+    function extractDate(item) {
+      let d = getItemVal(item, ["Timestamp", "Date", "DateTime", "Created_At", "Col_3", "Col_5"]);
+      if (!d) return "-";
+      let dateObj = new Date(d);
+      if (!isNaN(dateObj.getTime())) {
+        return dateObj.toLocaleString('th-TH', { 
+          day: '2-digit', month: '2-digit', year: '2-digit', 
+          hour: '2-digit', minute: '2-digit' 
+        });
+      }
+      return d;
+    }
 
     function getSlipLinkHTML(item) {
       let url = ""; Object.keys(item).forEach(k => { if(typeof item[k]==='string' && item[k].startsWith('http')) url = item[k]; });
@@ -266,7 +296,7 @@
       const pTable = document.getElementById("pendingTable");
       pTable.innerHTML = "";
       if(pendingData.length === 0) {
-        pTable.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">ไม่มีรายการรอตรวจสอบ ✨</td></tr>`;
+        pTable.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#64748b;">ไม่มีรายการรอตรวจสอบ ✨</td></tr>`;
         document.getElementById("pendPagination").style.display = "none";
         return;
       }
@@ -280,15 +310,19 @@
         const name = extractName(item);
         const slip = getSlipLinkHTML(item);
         const invId = getItemVal(item, ["Invoice_ID", "Invoice ID", "Col_0"]) || '-';
+        const dateStr = extractDate(item);
 
-        pTable.innerHTML += `<tr><td style="color:#94a3b8; font-size:12px;">${invId}</td>
+        pTable.innerHTML += `<tr>
+          <td style="color:#94a3b8; font-size:12px;">${invId}</td>
+          <td style="color:#90e0ef; font-size:12px; white-space:nowrap;">${dateStr}</td>
           <td style="font-weight:bold;">${name}</td>
           <td style="color:#86efac; font-weight:bold;">${Math.abs(amt).toLocaleString()} ฿</td>
           <td>${slip}</td>
           <td>
             <button class="btn btn-approve" onclick="handleAction(${item.rowIndex}, 'approve')">อนุมัติ</button>
             <button class="btn btn-reject" onclick="handleAction(${item.rowIndex}, 'reject')">ปฏิเสธ</button>
-          </td></tr>`;
+          </td>
+        </tr>`;
       });
 
       document.getElementById("pendPageInfo").innerText = `หน้า ${pendingPage} / ${totalPages} (${pendingData.length} รายการ)`;
@@ -308,7 +342,7 @@
       const hTable = document.getElementById("historyTable");
       hTable.innerHTML = "";
       if(historyData.length === 0) {
-        hTable.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#64748b;">ไม่มีประวัติรายการ 📜</td></tr>`;
+        hTable.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#64748b;">ไม่มีประวัติรายการ 📜</td></tr>`;
         document.getElementById("histPagination").style.display = "none";
         return;
       }
@@ -323,13 +357,21 @@
         const name = extractName(item);
         const slip = getSlipLinkHTML(item);
         const invId = getItemVal(item, ["Invoice_ID", "Invoice ID", "Col_0"]) || '-';
+        const dateStr = extractDate(item);
 
         let bdg = `<span class="badge" style="color:#4ade80; border-color:#4ade80; background:rgba(74,222,128,0.1);">✅ อนุมัติแล้ว</span>`;
         if(stat==="Rejected") bdg = `<span class="badge" style="color:#f87171; border-color:#f87171; background:rgba(248,113,113,0.1);">❌ ปฏิเสธ</span>`;
         else if(amt<0) bdg = `<span class="badge" style="color:#34d399; border-color:#34d399; background:rgba(52,211,153,0.1);">💵 ชำระแล้ว / เงินสด</span>`;
         else if(amt>0) bdg = `<span class="badge" style="color:#38bdf8; border-color:#38bdf8; background:rgba(56,189,248,0.1);">📌 ตั้งหนี้</span>`;
 
-        hTable.innerHTML += `<tr><td style="color:#94a3b8; font-size:12px;">${invId}</td><td>${name}</td><td style="font-weight:bold;">${amt.toLocaleString()} ฿</td><td>${bdg}</td><td>${slip}</td></tr>`;
+        hTable.innerHTML += `<tr>
+          <td style="color:#94a3b8; font-size:12px;">${invId}</td>
+          <td style="color:#90e0ef; font-size:12px; white-space:nowrap;">${dateStr}</td>
+          <td>${name}</td>
+          <td style="font-weight:bold;">${amt.toLocaleString()} ฿</td>
+          <td>${bdg}</td>
+          <td>${slip}</td>
+        </tr>`;
       });
 
       document.getElementById("histPageInfo").innerText = `หน้า ${historyPage} / ${totalPages} (${historyData.length} รายการ)`;
