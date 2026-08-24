@@ -34,7 +34,7 @@
     .btn-start:hover { transform: scale(1.05) translateY(-5px); box-shadow: 0 10px 30px rgba(0, 180, 216, 0.8); }
 
     #mainContent { display: none; opacity: 0; padding: 40px 15px; }
-    .container { max-width: 800px; margin: 0 auto; animation: fadeInUp 0.8s ease forwards; }
+    .container { max-width: 850px; margin: 0 auto; animation: fadeInUp 0.8s ease forwards; }
     .card { background: var(--glass-sea); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 30px; margin-bottom: 30px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
     
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
@@ -49,9 +49,9 @@
     .btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .table-responsive { overflow-x: auto; margin-top: 20px; border-radius: 12px; border: 1px solid var(--glass-border); }
-    table { width: 100%; border-collapse: collapse; min-width: 500px; }
-    th { padding: 15px; background: rgba(255,255,255,0.05); color: var(--sea-foam); text-align: left; }
-    td { padding: 15px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    th { padding: 15px; background: rgba(255,255,255,0.05); color: var(--sea-foam); text-align: left; font-size: 14px; }
+    td { padding: 15px; border-top: 1px solid rgba(255, 255, 255, 0.05); font-size: 14px; }
 
     .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px 5px; }
 
@@ -97,7 +97,14 @@
         <div id="resultArea" style="display:none; margin-top: 30px; animation: fadeInUp 0.5s ease forwards;">
           <div class="table-responsive">
             <table>
-              <thead><tr><th>รายการ</th><th>สถานะ</th><th>จำนวนเงิน</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>วันที่/เวลา</th>
+                  <th>รายการ</th>
+                  <th>สถานะ</th>
+                  <th>จำนวนเงิน</th>
+                </tr>
+              </thead>
               <tbody id="resultTableBody"></tbody>
             </table>
           </div>
@@ -152,7 +159,6 @@
     const PROMPTPAY_NUMBER = "004666016949996"; 
     let currentTotalPending = 0;
     
-    // pagination state
     let filteredCustomerItems = [];
     let custCurrentPage = 1;
     const ITEMS_PER_PAGE = 10;
@@ -184,6 +190,19 @@
     function extractName(item) { return getItemVal(item, ["Customer_Name", "Customer Name", "Col_1"]).toString().trim(); }
     function extractAmount(item) { let a = parseFloat(getItemVal(item, ["Amount", "Col_2"])); return isNaN(a) ? 0 : a; }
     function extractStatus(item) { return getItemVal(item, ["Status", "Col_4"]).toString().trim(); }
+    
+    function extractDate(item) {
+      let d = getItemVal(item, ["Timestamp", "Date", "DateTime", "Created_At", "Col_3", "Col_5"]);
+      if (!d) return "-";
+      let dateObj = new Date(d);
+      if (!isNaN(dateObj.getTime())) {
+        return dateObj.toLocaleString('th-TH', { 
+          day: '2-digit', month: '2-digit', year: '2-digit', 
+          hour: '2-digit', minute: '2-digit' 
+        });
+      }
+      return d;
+    }
 
     function generatePromptPayPayload(target, amount) {
       function sanitizeInput(input) { return input.replace(/[^0-9]/g, ''); }
@@ -245,7 +264,14 @@
         else if(stat !== "Pending Verification") b = `<span style="color:#0ea5e9;">📌 ตั้งหนี้</span>`;
         
         const invId = getItemVal(item, ["Invoice_ID", "Invoice ID", "Col_0"]) || '-';
-        tbody.innerHTML += `<tr><td style="font-size:13px; color:#cbd5e1;">${invId}</td><td>${b}</td><td style="font-weight:bold;">${Math.abs(amt).toLocaleString()} ฿</td></tr>`;
+        const dateStr = extractDate(item);
+
+        tbody.innerHTML += `<tr>
+          <td style="font-size:12px; color:#90e0ef; white-space:nowrap;">${dateStr}</td>
+          <td style="font-size:13px; color:#cbd5e1;">${invId}</td>
+          <td>${b}</td>
+          <td style="font-weight:bold;">${Math.abs(amt).toLocaleString()} ฿</td>
+        </tr>`;
       });
 
       document.getElementById("custPageInfo").innerText = `หน้า ${custCurrentPage} / ${totalPages} (${filteredCustomerItems.length} รายการ)`;
