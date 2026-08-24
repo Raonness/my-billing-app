@@ -13,7 +13,6 @@
     }
     * { box-sizing: border-box; font-family: 'Kanit', sans-serif; transition: all 0.3s ease; }
     
-    /* 🌊 อนิเมชันพื้นหลังอลังการ */
     body {
       margin: 0; min-height: 100vh; color: white;
       background: linear-gradient(-45deg, #0a2540, #0077b6, #00b4d8, #03045e);
@@ -38,9 +37,8 @@
     .container { max-width: 800px; margin: 0 auto; animation: fadeInUp 0.8s ease forwards; }
     .card { background: var(--glass-sea); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 30px; margin-bottom: 30px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
     
-    /* Responsive Grid & Inputs */
     .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
-    input { width: 100%; padding: 14px 18px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: white; font-size: 16px; outline: none; transition: border-color 0.3s; }
+    input { width: 100%; padding: 14px 18px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: white; font-size: 16px; outline: none; }
     input:focus { border-color: var(--sea-cyan); background: rgba(255, 255, 255, 0.1); }
     
     .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 15px; }
@@ -57,7 +55,6 @@
     .modal-content { background: var(--sea-deep); border: 1px solid var(--glass-border); padding: 30px; border-radius: 24px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); animation: fadeInUp 0.4s ease forwards; }
     .qr-box { background: white; padding: 20px; border-radius: 20px; display: inline-block; margin: 20px 0; box-shadow: 0 10px 25px rgba(255,255,255,0.2); }
 
-    /* Toasts */
     .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999999; }
     .toast { padding: 15px 25px; border-radius: 12px; background: rgba(10, 37, 64, 0.95); border: 1px solid var(--glass-border); color: white; font-size: 15px; margin-bottom: 10px; animation: fadeInUp 0.3s ease forwards; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
@@ -75,14 +72,12 @@
   </div>
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- หน้า Welcome -->
   <div id="welcomePage">
     <h1 class="hero-title">หัวหินทริป 🌊</h1>
-    <p style="color:var(--sea-foam); font-size:1.2rem; margin-bottom: 10px; animation: fadeInUp 1s ease forwards 0.3s; opacity: 0;">ยินดีต้อนรับสู่ระบบชำระเงิน</p>
+    <p style="color:var(--sea-foam); font-size:1.2rem; margin-bottom: 10px; opacity: 0; animation: fadeInUp 1s ease forwards 0.3s;">ยินดีต้อนรับสู่ระบบชำระเงิน</p>
     <button class="btn-start" onclick="startExperience()">เริ่มใช้งานระบบ</button>
   </div>
 
-  <!-- หน้าหลัก -->
   <div id="mainContent">
     <div class="container">
       <div class="top-bar">
@@ -90,7 +85,6 @@
         <a href="payment.html" style="color:var(--sea-foam); text-decoration:none; padding:8px 16px; border:1px solid var(--glass-border); border-radius:50px; font-size:14px;">🔒 ระบบแอดมิน</a>
       </div>
 
-      <!-- ส่วนค้นหาและแสดงยอด -->
       <div class="card">
         <label style="color:var(--sea-cyan); font-weight:600; font-size:1.1rem; display:block; margin-bottom:10px;">🔍 ตรวจสอบยอดค้างชำระ</label>
         <input type="text" id="searchName" placeholder="พิมพ์ชื่อของคุณ...">
@@ -110,19 +104,17 @@
         </div>
       </div>
 
-      <!-- ส่วนแจ้งชำระอิสระ -->
       <div class="card">
         <label style="color:#86efac; font-weight:600; font-size:1.1rem; display:block; margin-bottom:10px;">💳 โอนเงินและแจ้งชำระ (ระบุยอดเอง)</label>
         <div style="display:grid; gap:15px;">
           <input type="text" id="payCustomerName" placeholder="ชื่อลูกค้า">
           <input type="number" id="payAmount" placeholder="จำนวนเงิน (บาท)">
         </div>
-        <button class="btn btn-qr" onclick="openQrModalFromInput()">📱 สร้าง QR Code โอนเงิน</button>
+        <button class="btn btn-qr" onclick="openQrModalFromInput()">📱 ตรวจสอบชื่อและสร้าง QR Code</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal ชำระเงิน -->
   <div class="modal" id="qrModal">
     <div class="modal-content">
       <h2 style="margin-top:0; color:var(--sea-cyan);">📱 สแกนจ่าย PromptPay</h2>
@@ -167,6 +159,17 @@
       setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
     }
 
+    // ฟังก์ชันดึงค่าฟิลด์แบบปลอดภัย รองรับทุกหัวตารางของหลังบ้านเดิม
+    function getItemVal(item, keys) {
+      for (let k of keys) {
+        if (item[k] !== undefined && item[k] !== null && item[k] !== "") return item[k];
+      }
+      return "";
+    }
+    function extractName(item) { return getItemVal(item, ["Customer_Name", "Customer Name", "Col_1"]).toString().trim(); }
+    function extractAmount(item) { let a = parseFloat(getItemVal(item, ["Amount", "Col_2"])); return isNaN(a) ? 0 : a; }
+    function extractStatus(item) { return getItemVal(item, ["Status", "Col_4"]).toString().trim(); }
+
     function generatePromptPayPayload(target, amount) {
       function sanitizeInput(input) { return input.replace(/[^0-9]/g, ''); }
       function formatField(id, value) { return id + ('0' + value.length).slice(-2) + value; }
@@ -181,35 +184,42 @@
     }
 
     function checkBalance() {
-      const name = document.getElementById("searchName").value.trim().toLowerCase();
-      if(!name) return notify("⚠️ กรุณากรอกชื่อ", false);
+      const searchKey = document.getElementById("searchName").value.trim().toLowerCase();
+      if(!searchKey) return notify("⚠️ กรุณากรอกชื่อก่อนทำการค้นหา", false);
       showLoader();
       fetch(WEB_APP_URL).then(r=>r.json()).then(data => {
         const tbody = document.getElementById("resultTableBody"); tbody.innerHTML = "";
         let total = 0, count = 0;
         data.forEach(item => {
-          if (item.Customer_Name && item.Customer_Name.toString().toLowerCase().includes(name)) {
-            count++; const amt = parseFloat(item.Amount)||0; const stat = item.Status||"";
+          const cName = extractName(item);
+          if (cName && cName.toLowerCase().includes(searchKey)) {
+            count++; 
+            const amt = extractAmount(item); 
+            const stat = extractStatus(item);
             if(stat !== "Pending Verification" && stat !== "Rejected") total += amt;
             let b = `<span style="color:#f59e0b;">⏳ รออนุมัติ</span>`;
             if(stat==="Rejected") b = `<span style="color:#ef4444;">❌ ปฏิเสธ</span>`;
             else if(amt<0) b = `<span style="color:#22c55e;">✅ ชำระแล้ว</span>`;
             else if(stat !== "Pending Verification") b = `<span style="color:#0ea5e9;">📌 ตั้งหนี้</span>`;
-            tbody.innerHTML += `<tr><td style="font-size:13px; color:#cbd5e1;">${item.Invoice_ID||'-'}</td><td>${b}</td><td style="font-weight:bold;">${Math.abs(amt).toLocaleString()} ฿</td></tr>`;
+            
+            const invId = getItemVal(item, ["Invoice_ID", "Invoice ID", "Col_0"]) || '-';
+            tbody.innerHTML += `<tr><td style="font-size:13px; color:#cbd5e1;">${invId}</td><td>${b}</td><td style="font-weight:bold;">${Math.abs(amt).toLocaleString()} ฿</td></tr>`;
           }
         });
-        if(count===0){ notify("❌ ไม่พบข้อมูล", false); document.getElementById("resultArea").style.display="none"; }
-        else {
+        if(count===0){ 
+          notify("❌ ไม่พบข้อมูลรายชื่อนี้ในระบบ", false); 
+          document.getElementById("resultArea").style.display="none"; 
+        } else {
           currentTotalPending = total;
           document.getElementById("totalPendingBox").innerText = `ยอดค้างชำระ: ${total.toLocaleString()} บาท`;
           document.getElementById("resultArea").style.display = "block";
           document.getElementById("payCustomerName").value = document.getElementById("searchName").value;
         }
-      }).catch(()=>notify("❌ เชื่อมต่อล้มเหลว", false)).finally(()=>hideLoader());
+      }).catch(()=>notify("❌ เชื่อมต่อฐานข้อมูลล้มเหลว", false)).finally(()=>hideLoader());
     }
 
     function showQrModal(cName, amt) {
-      if(!cName || amt<=0) return notify("⚠️ ข้อมูลไม่ครบหรือยอดเป็น 0", false);
+      if(!cName || amt<=0) return notify("⚠️ กรุณาระบุชื่อและจำนวนเงินที่ถูกต้อง", false);
       document.getElementById("modalCustomerName").innerText = cName;
       document.getElementById("modalAmountDisplay").innerText = parseFloat(amt).toLocaleString();
       const cont = document.getElementById("qrCodeContainer"); cont.innerHTML = "";
@@ -217,8 +227,27 @@
       document.getElementById("qrModal").style.display = "flex";
     }
 
-    function openQrModalFromTotal() { showQrModal(document.getElementById("searchName").value, currentTotalPending); }
-    function openQrModalFromInput() { showQrModal(document.getElementById("payCustomerName").value, parseFloat(document.getElementById("payAmount").value)||0); }
+    function openQrModalFromTotal() { 
+      showQrModal(document.getElementById("searchName").value, currentTotalPending); 
+    }
+
+    function openQrModalFromInput() { 
+      const name = document.getElementById("payCustomerName").value.trim();
+      const amt = parseFloat(document.getElementById("payAmount").value)||0;
+      if(!name) return notify("⚠️ กรุณากรอกชื่อลูกค้าก่อน", false);
+      if(amt<=0) return notify("⚠️ กรุณากรอกจำนวนเงินให้ถูกต้อง", false);
+
+      showLoader();
+      fetch(WEB_APP_URL).then(r=>r.json()).then(data => {
+        const found = data.some(item => extractName(item).toLowerCase().includes(name.toLowerCase()));
+        if(found) {
+          showQrModal(name, amt);
+        } else {
+          notify("❌ ไม่พบรายชื่อลูกค้านี้ในระบบ กรุณาตรวจสอบชื่ออีกครั้ง", false);
+        }
+      }).catch(()=>notify("❌ ตรวจสอบรายชื่อล้มเหลว", false)).finally(()=>hideLoader());
+    }
+
     function closeQrModal() { document.getElementById("qrModal").style.display = "none"; document.getElementById("modalSlipFile").value=""; }
 
     async function submitModalPayment() {
@@ -233,7 +262,7 @@
       }
       fetch(WEB_APP_URL, { method:"POST", body:JSON.stringify({ actionType:"update", customerName:cName, amount:amt, slipBase64:b64, mimeType:mime }) })
       .then(r=>r.json()).then(d=>{
-        if(d.status==="success"){ notify("✅ ส่งข้อมูลสำเร็จ"); closeQrModal(); if(document.getElementById("searchName").value) checkBalance(); }
+        if(d.status==="success"){ notify("✅ ส่งข้อมูลการชำระเงินสำเร็จ"); closeQrModal(); if(document.getElementById("searchName").value) checkBalance(); }
         else notify("❌ " + (d.message||"เกิดข้อผิดพลาด"), false);
       }).catch(()=>notify("❌ ส่งข้อมูลไม่สำเร็จ", false)).finally(()=>hideLoader());
     }
